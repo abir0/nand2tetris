@@ -1,10 +1,8 @@
 import sys
 import re
-import json
 
 def dec2bin(num):
     """Converts a decimal number to binary in string format."""
-
     bin = ''
 
     while num != 0:
@@ -20,31 +18,23 @@ def dec2bin(num):
     return bin
 
 
-def json2dict(filename):
-    """Converts JSON object into dictoniary."""
+def table_map(asm):
+    """Maps the variable names to register addresses."""
+    # tableionary of mappings between pre-defined names
+    table = {
+        "SP": 0,
+        "LCL": 1,
+        "ARG": 2,
+        "THIS": 3,
+        "THAT": 4,
+        "SCREEN": 16384,
+        "KBD": 24576,
+        }
 
-    with open(filename) as json_file:
-        # Convert the object into dictoniary; file must contain json object
-        dict = json.load(json_file)
+    for i in range(0, 16):
+        table["R" + str(i)] = i
 
-    if type(dict) == type({}):
-        return dict
-    else:
-        return None
-
-
-def mapping_dict(asm):
-    """Maps the symbolic names to register addresses."""
-
-    dict = {}
-    ## Add pre-defined names to the dictoniary
-    # Add I/O and VM controll pointers respectively
-    dict = {"SCREEN":16384, "KBD":24576, "SP":0, "LCL":1, "ARG":2, "THIS":3, "THAT":4}
-    # Add virtual registers
-    for i in range(16):
-        dict["R" + str(i)] = i
-
-    ## Now add user-defined names (i.e. variables and goto's)
+    # Add user-defined names (i.e. variables and goto's)
     goto_pattern = r'[^\/]*?\(([A-Za-z0-9$._]+)\)'
     var_pattern = r'[^\/]*?@([A-Za-z0-9$._]+)' # all types of variables
     A_pattern = r'[^\/]*?@[0-9]+' # only numerals
@@ -55,108 +45,137 @@ def mapping_dict(asm):
     count = -1
     reg = 16
 
+    var_list = []
+
     for line in asm:
         goto = re.search(goto_pattern, line)
-
-        if goto is not None:
-            dict[goto[1]] = count + 1
-        elif re.search(A_pattern, line) is not None:
-            count += 1
-        elif re.search(var_pattern, line) is not None:
-            count += 1
-        elif re.search(C_pattern, line) is not None:
-            count += 1
-        elif re.search(C_pattern2, line) is not None:
-            count += 1
-
-    # Second pass for other variables
-    count = -1
-    for line in asm:
         var = re.search(var_pattern, line)
 
-        if re.search(A_pattern, line) is not None:
+        if goto is not None:
+            table[goto[1]] = count + 1
+        elif re.search(A_pattern, line) is not None:
             count += 1
         elif var is not None:
-            if dict.get(var[1]) is not None:
-                count += 1
-                continue
-            dict[var[1]] = reg
-            reg += 1
+            var_list.append(var[1])
             count += 1
         elif re.search(C_pattern, line) is not None:
             count += 1
         elif re.search(C_pattern2, line) is not None:
             count += 1
 
-    return dict
+    for i in var_list:
+        if table[i] is not None:
+            continue
+        table[i] = reg
+        reg += 1
+
+    return table
 
 
-def parser(instruction):
-    """Parses a C instruction into binary string format."""
+def parser(line, table, comp_dict, dest_dict, jump_dict):
+    # Remove comment and whitespace
+    line = re.sub(r'//.*', '' , line)
+    line = line.strip()
 
-    # Regex for different parts of the instruction
-    comp_pattern1 = r'[^\/]*?=([ADM01!&|+-]{1,3})'
-    comp_pattern2 = r'[^\/]*?([ADM01!&|+-]{1,3});'
-    dest_pattern = r'[^\/]*?([AMD]{1,3})='
-    jump_pattern = r'[^\/]*?;([E-T]{3})'
-
-    # Extract each parts
-    if re.search(comp_pattern1, instruction) is None:
-        comp = re.search(comp_pattern2, instruction)[1]
+    # Find A instruction
+    if line.find('@') == 0:
+        try:
+            dec = int(line[1:])
+            bin = dec2bin(dec)
+        except:
+            dec = table[line]
+            bin = dec2bin(dec)
     else:
-        comp = re.search(comp_pattern1, instruction)[1]
+        if line.find(';') != -1:
+            dest, jump = line.split(';')
+            comp = "null"
+            if dest.find('=') != -1:
+                dest, comp = dest.split('=')
 
-    if re.search(dest_pattern, instruction) is None:
-        dest = "null"
-    else:
-        dest = re.search(dest_pattern, instruction)[1]
+        elif line.find('=') != -1:
+            dest, comp = line.split('=')
+            jump = "null"
 
-    if re.search(jump_pattern, instruction) is None:
-        jump = "null"
-    else:
-        jump = re.search(jump_pattern, instruction)[1]
+        else:
+            return None
 
-    # Find the corresponding binary valus from JSON file
-    filename = 'instruction_table.json'
-    dict = json2dict(filename)
-    comp = dict["comp"][comp]
-    dest = dict["dest"][dest]
-    jump = dict["jump"][jump]
+        comp = comp_dict[comp]
+        dest = dest_dict[dest]
+        jump = jump_dict[jump]
 
-    # Joining every parts togather
-    binary_code = '111' + comp + dest + jump
-    return binary_code
+        # Joining every parts togather
+        bin = '111' + comp + dest + jump
+
+    return bin
 
 
 def main(args):
     with open(args[0]) as asm_file:
-        asm_data = asm_file.readlines()
+        data = asm_file.readlines()
+    # Three dictoniaries store machine translations for
+    # each parts of the C instruction
+    comp_dict = {
+        "0": "0101010",
+        "1": "0111111",
+        "-1": "0111010",
+        "D": "0001100",
+        "A": "0110000",
+        "!D": "0001101",
+        "!A": "0110001",
+        "-D": "0001111",
+        "-A": "0110011",
+        "D+1": "0011111",
+        "A+1": "0110111",
+        "D-1": "0001110",
+        "A-1": "0110010",
+        "D+A": "0000010",
+        "D-A": "0010011",
+        "A-D": "0000111",
+        "D&A": "0000000",
+        "D|A": "0010101",
+        "M": "1110000",
+        "!M": "1110001",
+        "-M": "1110011",
+        "M+1": "1110111",
+        "M-1": "1110010",
+        "D+M": "1000010",
+        "D-M": "1010011",
+        "M-D": "1000111",
+        "D&M": "1000000",
+        "D|M": "1010101"
+        }
 
-    sym_dict = mapping_dict(asm_data)
+    dest_dict = {
+        "null": "000",
+        "M": "001",
+        "D": "010",
+        "A": "100",
+        "MD": "011",
+        "AM": "101",
+        "AD": "110",
+        "AMD": "111"
+        }
 
-    Ainstruction_pattern = r'^[^\/]*?@([A-Za-z0-9$._]+)'
-    Cinstruction_pattern = r'^[^\/]+?='
-    Cinstruction_pattern2 = r'^[^\/=]+?;'
+    jump_dict = {
+        "null": "000",
+        "JGT": "001",
+        "JEQ": "010",
+        "JGE": "011",
+        "JLT": "100",
+        "JNE": "101",
+        "JLE": "110",
+        "JMP": "111"
+        }
+
+    table = table_map(data)
 
     machine_code = []
 
-    for line in asm_data:
-        Ainstruction = re.search(Ainstruction_pattern, line)
-        Cinstruction = re.search(Cinstruction_pattern, line)
-        Cinstruction2 = re.search(Cinstruction_pattern2, line)
-
-        if  (Cinstruction or Cinstruction2)  is not None:
-            bin = parser(line)
-            machine_code.append(bin)
-
-        if Ainstruction is not None:
-            try:
-                dec = int(Ainstruction[1])
-            except:
-                dec = sym_dict[Ainstruction[1]]
-
-            bin = dec2bin(dec)
-            machine_code.append(bin)
+    for line in data:
+        bin = parser(line, table, comp_dict, dest_dict, jump_dict)
+        if bin is None:
+            continue
+        machine_code.append(bin)
 
     with open(args[1], "w+") as hack_file:
         hack_file.write('\n'.join(machine_code)) # Join each list item with newline
