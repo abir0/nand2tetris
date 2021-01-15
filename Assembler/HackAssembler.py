@@ -36,7 +36,7 @@ def table_map(asm):
 
     # Add user-defined names (i.e. variables and goto's)
     goto_pattern = r'[^\/]*?\(([A-Za-z0-9$._]+)\)'
-    var_pattern = r'[^\/]*?@([A-Za-z0-9$._]+)' # all types of variables
+    var_pattern = r'[^\/]*?@([A-Za-z$_][A-Za-z0-9$._]*)' # all types of variables
     A_pattern = r'[^\/]*?@[0-9]+' # only numerals
     C_pattern = r'[^\/]+?='
     C_pattern2 = r'[^\/=]+?;'
