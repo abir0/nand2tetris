@@ -113,7 +113,7 @@ def main(args):
     with open(args[0]) as asm_file:
         data = asm_file.readlines()
 
-    # Three dictoniaries store machine translations for
+    # Three dictionaries store machine translations for
     # each parts of the C instruction
     comp_dict = {
         "0"  : "0101010",
