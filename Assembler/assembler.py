@@ -1,5 +1,7 @@
 import sys
 import re
+import json
+
 
 def dec2bin(num):
     """Converts a decimal number to 16-bit binary in string format."""
@@ -19,8 +21,9 @@ def dec2bin(num):
     return bin
 
 
-def map_table(asm):
+def map_table(code):
     """Maps the variable names to register addresses."""
+
     # Dictionary of mappings between pre-defined names
     table = {
         "SP"    : 0,
@@ -47,7 +50,7 @@ def map_table(asm):
     reg = 16        # start after R15
     count = -1      # keep track of instruction memory position
 
-    for line in asm:
+    for line in code:
         goto = re.search(goto_pattern, line)
         var = re.search(var_pattern, line)
 
@@ -87,9 +90,10 @@ def parser(line):
     # Parse A instruction, return int or string
     if line.find('@') == 0:
         try:
-            parsed = int(line[1:])
+            dec = int(line[1:])
+            return dec
         except:
-            parsed = line[1:]
+            return line[1:]
 
     else:
         # Parse C instruction, return tuple
@@ -99,76 +103,23 @@ def parser(line):
 
             if comp.find('=') != -1:
                 dest, comp = comp.split('=')    # dest = comp ; jump
-            parsed = comp, dest, jump
+            return comp, dest, jump
 
         elif line.find('=') != -1:
             dest, comp = line.split('=')        # dest = comp
             jump = "null"
-            parsed = comp, dest, jump
+            return comp, dest, jump
 
         else:
             return None
-    return parsed
 
 
 def main(args):
-    with open(args[0]) as asm_file:
-        data = asm_file.readlines()
 
-    # Three dictionaries store machine translations for
-    # each parts of the C instruction
-    comp = {
-        "0"  : "0101010",
-        "1"  : "0111111",
-        "-1" : "0111010",
-        "D"  : "0001100",
-        "A"  : "0110000",
-        "!D" : "0001101",
-        "!A" : "0110001",
-        "-D" : "0001111",
-        "-A" : "0110011",
-        "D+1": "0011111",
-        "A+1": "0110111",
-        "D-1": "0001110",
-        "A-1": "0110010",
-        "D+A": "0000010",
-        "D-A": "0010011",
-        "A-D": "0000111",
-        "D&A": "0000000",
-        "D|A": "0010101",
-        "M"  : "1110000",
-        "!M" : "1110001",
-        "-M" : "1110011",
-        "M+1": "1110111",
-        "M-1": "1110010",
-        "D+M": "1000010",
-        "D-M": "1010011",
-        "M-D": "1000111",
-        "D&M": "1000000",
-        "D|M": "1010101"
-        }
+    with open(args[0]) as infile:
+        data = infile.readlines()
 
-    dest = {
-        "null": "000",
-        "M"   : "001",
-        "D"   : "010",
-        "A"   : "100",
-        "MD"  : "011",
-        "AM"  : "101",
-        "AD"  : "110",
-        "AMD" : "111"
-        }
-
-    jump = {
-        "null": "000",
-        "JGT" : "001",
-        "JEQ" : "010",
-        "JGE" : "011",
-        "JLT" : "100",
-        "JNE" : "101",
-        "JLE" : "110",
-        "JMP" : "111"
-        }
+    from instructions import comp, dest, jump
 
     table = map_table(data)
 
@@ -194,8 +145,8 @@ def main(args):
 
         machine_code.append(bin)
 
-    with open(args[1], "w") as hack_file:
-        hack_file.write('\n'.join(machine_code)) # Join each list item with newline
+    with open(args[1], "w") as outfile:
+        outfile.write('\n'.join(machine_code)) # Join each list item with newline
 
 
 if __name__ == "__main__":
