@@ -20,7 +20,7 @@ def dec2bin(num):
 
 def table_map(asm):
     """Maps the variable names to register addresses."""
-    # tableionary of mappings between pre-defined names
+    # Dictionary of mappings between pre-defined names
     table = {
         "SP"    : 0,
         "LCL"   : 1,
@@ -56,7 +56,8 @@ def table_map(asm):
         elif re.search(A_pattern, line) is not None:
             count += 1
         elif var is not None:
-            var_list.append(var[1])
+            if var[1] not in var_list:
+                var_list.append(var[1])
             count += 1
         elif re.search(C_pattern, line) is not None:
             count += 1
@@ -64,15 +65,16 @@ def table_map(asm):
             count += 1
 
     for i in var_list:
-        if table[i] is not None:
-            continue
-        table[i] = reg
-        reg += 1
+        try:
+            table[i]
+        except KeyError:
+            table[i] = reg
+            reg += 1
 
     return table
 
 
-def parser(line, table, comp_dict, dest_dict, jump_dict):
+def parser(line):
     # Remove comment and whitespace
     line = re.sub(r'//.*', '' , line)
     line = line.strip()
@@ -80,33 +82,26 @@ def parser(line, table, comp_dict, dest_dict, jump_dict):
     # Find A instruction
     if line.find('@') == 0:
         try:
-            dec = int(line[1:])
-            bin = dec2bin(dec)
+            parsed = int(line[1:])
         except:
-            dec = table[line]
-            bin = dec2bin(dec)
+            parsed = line[1:]
+
     else:
         if line.find(';') != -1:
-            dest, jump = line.split(';')
-            comp = "null"
-            if dest.find('=') != -1:
-                dest, comp = dest.split('=')
+            comp, jump = line.split(';')
+            dest = "null"
+            if comp.find('=') != -1:
+                dest, comp = comp.split('=')
+            parsed = comp, dest, jump
 
         elif line.find('=') != -1:
             dest, comp = line.split('=')
             jump = "null"
+            parsed = comp, dest, jump
 
         else:
             return None
-
-        comp = comp_dict[comp]
-        dest = dest_dict[dest]
-        jump = jump_dict[jump]
-
-        # Joining every parts togather
-        bin = '111' + comp + dest + jump
-
-    return bin
+    return parsed
 
 
 def main(args):
@@ -115,7 +110,7 @@ def main(args):
 
     # Three dictionaries store machine translations for
     # each parts of the C instruction
-    comp_dict = {
+    comp = {
         "0"  : "0101010",
         "1"  : "0111111",
         "-1" : "0111010",
@@ -146,7 +141,7 @@ def main(args):
         "D|M": "1010101"
         }
 
-    dest_dict = {
+    dest = {
         "null": "000",
         "M"   : "001",
         "D"   : "010",
@@ -157,7 +152,7 @@ def main(args):
         "AMD" : "111"
         }
 
-    jump_dict = {
+    jump = {
         "null": "000",
         "JGT" : "001",
         "JEQ" : "010",
@@ -173,8 +168,17 @@ def main(args):
     machine_code = []
 
     for line in data:
-        bin = parser(line, table, comp_dict, dest_dict, jump_dict)
-        if bin is None:
+        _parsed = parser(line)
+        #DEBUG: print(_parsed)
+        if type(_parsed) is type(()):
+            # Joining every parts togather
+            bin = '111' + comp[_parsed[0]] + dest[_parsed[1]] + jump[_parsed[2]]
+        elif type(_parsed) is type(0):
+            bin = dec2bin(_parsed)
+        elif type(_parsed) is type(''):
+            dec = table[_parsed]
+            bin = dec2bin(dec)
+        else:
             continue
         machine_code.append(bin)
 
