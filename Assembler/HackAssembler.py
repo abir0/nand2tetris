@@ -2,7 +2,7 @@ import sys
 import re
 
 def dec2bin(num):
-    """Converts a decimal number to binary in string format."""
+    """Converts a decimal number to 16-bit binary in string format."""
     bin = ''
 
     while num != 0:
@@ -14,11 +14,12 @@ def dec2bin(num):
             bin = '0' + bin
         num = quotient
 
-    bin = '0' + (15 - len(bin)) * '0' + bin # Pad with zeroes to match 16 bits
+    # Pad with 0's to match 16 bits
+    bin = '0' + (15 - len(bin)) * '0' + bin
     return bin
 
 
-def table_map(asm):
+def map_table(asm):
     """Maps the variable names to register addresses."""
     # Dictionary of mappings between pre-defined names
     table = {
@@ -31,36 +32,39 @@ def table_map(asm):
         "KBD"   : 24576,
         }
 
+    # R0-R15
     for i in range(0, 16):
         table["R" + str(i)] = i
 
-    # Add user-defined names (i.e. variables and goto's)
-    goto_pattern = r'[^\/]*?\(([A-Za-z0-9$._]+)\)'
-    var_pattern = r'[^\/]*?@([A-Za-z$_][A-Za-z0-9$._]*)' # all types of variables
-    A_pattern = r'[^\/]*?@[0-9]+' # only numerals
-    C_pattern = r'[^\/]+?='
-    C_pattern2 = r'[^\/=]+?;'
+    # Add user-defined names i.e. variables and gotos
+    goto_pattern = r'[^\/]*?\(([A-Za-z0-9$._]+)\)'        # (goto)
+    var_pattern = r'[^\/]*?@([A-Za-z$_][A-Za-z0-9$._]*)'  # @variable
+    A_pattern = r'[^\/]*?@[0-9]+'                         # @123
+    C_pattern = r'[^\/]+?='                               # dest = comp
+    C_pattern2 = r'[^\/=]+?;'                             # comp ; jump
 
-    # First pass for goto
-    count = -1
-    reg = 16
-
-    var_list = []
+    var_list = []   # list of all @-values
+    reg = 16        # start after R15
+    count = -1      # keep track of instruction memory position
 
     for line in asm:
         goto = re.search(goto_pattern, line)
         var = re.search(var_pattern, line)
 
         if goto is not None:
-            table[goto[1]] = count + 1
+            table[goto[1]] = count + 1      # add next position after goto
+
         elif re.search(A_pattern, line) is not None:
             count += 1
+
         elif var is not None:
             if var[1] not in var_list:
-                var_list.append(var[1])
+                var_list.append(var[1])    # append to list if it doesn't exist
             count += 1
+
         elif re.search(C_pattern, line) is not None:
             count += 1
+
         elif re.search(C_pattern2, line) is not None:
             count += 1
 
@@ -68,18 +72,19 @@ def table_map(asm):
         try:
             table[i]
         except KeyError:
-            table[i] = reg
+            table[i] = reg      # if key doesn't exist add it
             reg += 1
 
     return table
 
 
 def parser(line):
+    """Parses A or C instruction into different components."""
     # Remove comment and whitespace
-    line = re.sub(r'//.*', '' , line)
-    line = line.strip()
+    line = re.sub(r'//.*', '' , line)   # remove comment
+    line = line.strip()                 # remove whitespace
 
-    # Find A instruction
+    # Parse A instruction, return int or string
     if line.find('@') == 0:
         try:
             parsed = int(line[1:])
@@ -87,15 +92,17 @@ def parser(line):
             parsed = line[1:]
 
     else:
+        # Parse C instruction, return tuple
         if line.find(';') != -1:
-            comp, jump = line.split(';')
+            comp, jump = line.split(';')        # comp ; jump
             dest = "null"
+
             if comp.find('=') != -1:
-                dest, comp = comp.split('=')
+                dest, comp = comp.split('=')    # dest = comp ; jump
             parsed = comp, dest, jump
 
         elif line.find('=') != -1:
-            dest, comp = line.split('=')
+            dest, comp = line.split('=')        # dest = comp
             jump = "null"
             parsed = comp, dest, jump
 
@@ -163,26 +170,31 @@ def main(args):
         "JMP" : "111"
         }
 
-    table = table_map(data)
+    table = map_table(data)
 
     machine_code = []
 
     for line in data:
-        _parsed = parser(line)
-        #DEBUG: print(_parsed)
-        if type(_parsed) is type(()):
-            # Joining every parts togather
-            bin = '111' + comp[_parsed[0]] + dest[_parsed[1]] + jump[_parsed[2]]
-        elif type(_parsed) is type(0):
-            bin = dec2bin(_parsed)
-        elif type(_parsed) is type(''):
-            dec = table[_parsed]
+        parsed = parser(line)
+
+        if type(parsed) is type(()):
+            # Join parsed components from corresponding dictionaries
+            # and pad with 1's to match 16 bits of A instruction
+            bin = '111' + comp[parsed[0]] + dest[parsed[1]] + jump[parsed[2]]
+
+        elif type(parsed) is type(0):
+            bin = dec2bin(parsed)
+
+        elif type(parsed) is type(''):
+            dec = table[parsed]
             bin = dec2bin(dec)
+
         else:
             continue
+
         machine_code.append(bin)
 
-    with open(args[1], "w+") as hack_file:
+    with open(args[1], "w") as hack_file:
         hack_file.write('\n'.join(machine_code)) # Join each list item with newline
 
 
