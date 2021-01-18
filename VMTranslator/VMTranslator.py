@@ -5,8 +5,8 @@ import re
 class Parser:
 
     def __init__(self, filename):
-        with open(filename, "r") as file:
-            self.lines = list(file)
+        with open(filename, "r") as infile:
+            self.lines = list(infile)
 
     def commentOut(self):
         self.lines = filter(len, [re.sub(r"//.*$", "", line).strip() for line in lines])
@@ -25,12 +25,13 @@ class Parser:
 
     def thirdWord(self):
         return self.line.split(" ")[2]
-    
 
 
 class CodeWriter:
 
-    def __init():
+    MAPS = ""   # Work in progress
+
+    def __init__(self, filename):
         return
 
     def Arithmatic(self):
@@ -39,9 +40,11 @@ class CodeWriter:
     def PushPop(self):
         return
 
+    def translateCode(self):
+        return
+
 
 def main():
-
     return
 
 
