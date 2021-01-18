@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import re
 
@@ -36,18 +38,17 @@ def map_table(asm):
         table["R" + str(i)] = i
 
     # Add user-defined names i.e. variables and gotos
-
     variables_list = []   # list of all @-values
     reg = 16        # start after R15
     count = -1      # keep track of instruction memory position
 
     for line in asm:
         parsed, flags =  parser(line)
-        A_instruction, A_num, C_instruction, goto_instruction = flags
+        A_instruction, A_numeric, C_instruction, goto_instruction = flags
 
         if goto_instruction:
             table[parsed] = count + 1      # add next position after goto
-        elif A_num:
+        elif A_numeric:
             count += 1
         elif A_instruction:
             if parsed not in variables_list:
@@ -74,7 +75,7 @@ def parser(line):
 
     # Flags
     A_instruction = False
-    A_num = False
+    A_numeric = False
     C_instruction = False
     goto_instruction = False
 
@@ -82,7 +83,7 @@ def parser(line):
     if line.find('@') == 0:
         try:
             parsed = int(line[1:])
-            A_num = True
+            A_numeric = True
         except:
             parsed = line[1:]
             A_instruction = True
@@ -108,14 +109,18 @@ def parser(line):
         else:
             parsed = None
 
-    flags = A_instruction, A_num, C_instruction, goto_instruction
+    flags = A_instruction, A_numeric, C_instruction, goto_instruction
     return parsed, flags
 
 
 def main(filename):
 
-    with open(filename, "r") as infile:
-        data = infile.readlines()
+    try:
+        with open(filename, "r") as infile:
+            data = infile.readlines()
+    except FileNotFoundError:
+        print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
+        sys.exit(1)
     # Three dictionaries store machine translations for
     # each parts of the C instruction
     comp = {
@@ -177,12 +182,12 @@ def main(filename):
 
     for line in data:
         parsed, flags = parser(line)
-        A_instruction, A_num, C_instruction, goto_instruction = flags
+        A_instruction, A_numeric, C_instruction, goto_instruction = flags
 
         if A_instruction:
             dec = table[parsed]
             bin = dec2bin(dec)
-        elif A_num:
+        elif A_numeric:
             bin = dec2bin(parsed)
         elif C_instruction:
             # Join parsed components from corresponding dictionaries
@@ -204,8 +209,7 @@ def main(filename):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Specify input filename.")
+        print("Usage: assembler <filename>")
         sys.exit(1)
 
-    filename = sys.argv[1]
-    main(filename)
+    main(sys.argv[1])
