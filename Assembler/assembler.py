@@ -1,6 +1,5 @@
 import sys
 import re
-import json
 
 
 def dec2bin(num):
