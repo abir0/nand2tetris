@@ -4,8 +4,28 @@ import re
 
 class Parser:
 
-    def __init__(self):
-        return
+    def __init__(self, filename):
+        with open(filename, "r") as file:
+            self.lines = list(file)
+
+    def commentOut(self):
+        self.lines = filter(len, [re.sub(r"//.*$", "", line).strip() for line in lines])
+
+    def nextLine(self):
+        self.line = self.lines.pop(0)
+
+    def isValidLine(self):
+        return len(self.line.split(" ")) == 1 or len(self.line.split(" ")) == 3
+
+    def firstWord(self):
+        return self.line.split(" ")[0]
+
+    def secondWord(self):
+        return self.line.split(" ")[1]
+
+    def thirdWord(self):
+        return self.line.split(" ")[2]
+    
 
 
 class CodeWriter:
