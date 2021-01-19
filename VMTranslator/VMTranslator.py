@@ -6,30 +6,46 @@ class Parser:
 
     def __init__(self, filename):
         with open(filename, "r") as infile:
-            self.lines = list(infile)
+            self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in lines]))
 
-    def commentOut(self):
-        self.lines = filter(len, [re.sub(r"//.*$", "", line).strip() for line in lines])
+    def hasMoreCommads(self):
+        return self.commands > 0
 
-    def nextLine(self):
-        self.line = self.lines.pop(0)
+    def nextCommad(self):
+        self.command = self.commands.pop(0)
 
-    def isValidLine(self):
-        return len(self.line.split(" ")) == 1 or len(self.line.split(" ")) == 3
+    def isValidCommand(self):
+        return len(self.command.split(" ")) == 1 or len(self.command.split(" ")) == 3
 
-    def firstWord(self):
-        return self.line.split(" ")[0]
+    def commandType(self):
+        if self.command.split(" ")[0].lower() is "push":
+            return "C_PUSH"
+        elif self.command.split(" ")[0].lower() is "pop":
+            return "C_POP"
+        else:
+            return "C_ARITHMATIC"
 
-    def secondWord(self):
-        return self.line.split(" ")[1]
+    def firstArgument(self):
+        if len(self.command.split(" ")) == 1:
+            return self.command.split(" ")[0]
+        else:
+            return self.command.split(" ")[1]
 
-    def thirdWord(self):
-        return self.line.split(" ")[2]
+    def secondArgument(self):
+        return int(self.command.split(" ")[2])
 
 
 class CodeWriter:
 
-    MAPS = ""   # Work in progress
+    pointer_map = {
+            "SP"    : 0,
+            "LCL"   : 1,
+            "ARG"   : 2,
+            "THIS"  : 3,
+            "THAT"  : 4,
+
+
+    }
 
     def __init__(self, filename):
         return
