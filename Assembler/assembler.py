@@ -20,9 +20,8 @@ def dec2bin(num):
     return bin
 
 
-def map_table(code):
+def map_table(asm):
     """Maps the variable names to register addresses."""
-
     # Dictionary of mappings between pre-defined names
     table = {
         "SP"    : 0,
@@ -33,44 +32,30 @@ def map_table(code):
         "SCREEN": 16384,
         "KBD"   : 24576,
         }
-
     # R0-R15
     for i in range(0, 16):
         table["R" + str(i)] = i
 
     # Add user-defined names i.e. variables and gotos
-    goto_pattern = r'[^\/]*?\(([A-Za-z0-9$._]+)\)'        # (goto)
-    var_pattern = r'[^\/]*?@([A-Za-z$_][A-Za-z0-9$._]*)'  # @variable
-    A_pattern = r'[^\/]*?@[0-9]+'                         # @123
-    C_pattern = r'[^\/]+?='                               # dest = comp
-    C_pattern2 = r'[^\/=]+?;'                             # comp ; jump
-
-    var_list = []   # list of all @-values
+    variables_list = []   # list of all @-values
     reg = 16        # start after R15
     count = -1      # keep track of instruction memory position
 
-    for line in code:
-        goto = re.search(goto_pattern, line)
-        var = re.search(var_pattern, line)
+    for line in asm:
+        parsed, flag =  parser(line)
 
-        if goto is not None:
-            table[goto[1]] = count + 1      # add next position after goto
-
-        elif re.search(A_pattern, line) is not None:
+        if flag == "GOTO_INSTRUCTION":
+            table[parsed] = count + 1      # add next position after goto
+        elif flag == "A_DECIMAL":
+            count += 1
+        elif flag == "A_INSTRUCTION":
+            if parsed not in variables_list:
+                variables_list.append(parsed)    # append to list if it doesn't exist
+            count += 1
+        elif flag == "C_INSTRUCTION":
             count += 1
 
-        elif var is not None:
-            if var[1] not in var_list:
-                var_list.append(var[1])    # append to list if it doesn't exist
-            count += 1
-
-        elif re.search(C_pattern, line) is not None:
-            count += 1
-
-        elif re.search(C_pattern2, line) is not None:
-            count += 1
-
-    for i in var_list:
+    for i in variables_list:
         try:
             table[i]
         except KeyError:
@@ -89,34 +74,45 @@ def parser(line):
     # Parse A instruction, return int or string
     if line.find('@') == 0:
         try:
-            dec = int(line[1:])
-            return dec
+            parsed = int(line[1:])
+            flag = "A_DECIMAL"
         except:
-            return line[1:]
+            parsed = line[1:]
+            flag = "A_INSTRUCTION"
 
+    elif line.startswith("(") and line.endswith(")"):
+        parsed = line[1:-1]
+        flag = "GOTO_INSTRUCTION"
     else:
         # Parse C instruction, return tuple
         if line.find(';') != -1:
             comp, jump = line.split(';')        # comp ; jump
             dest = "null"
-
             if comp.find('=') != -1:
                 dest, comp = comp.split('=')    # dest = comp ; jump
-            return comp, dest, jump
+            parsed = comp, dest, jump
+            flag = "C_INSTRUCTION"
 
         elif line.find('=') != -1:
             dest, comp = line.split('=')        # dest = comp
             jump = "null"
-            return comp, dest, jump
-
+            parsed = comp, dest, jump
+            flag = "C_INSTRUCTION"
         else:
-            return None
+            parsed = None
+            flag = None
+
+    return parsed, flag
 
 
-def main(args):
+def main(filename):
 
-    with open(args[0]) as infile:
-        data = infile.readlines()
+    try:
+        with open(filename, "r") as infile:
+            data = infile.readlines()
+    except FileNotFoundError:
+        print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
+        sys.exit(1)
 
     from instructions import comp, dest, jump
 
@@ -125,28 +121,31 @@ def main(args):
     machine_code = []
 
     for line in data:
-        parsed = parser(line)
-
-        if type(parsed) is type(()):
+        parsed, flag = parser(line)
+        
+        if flag == "A_INSTRUCTION":
+            dec = table[parsed]
+            bin = dec2bin(dec)
+        elif flag == "A_DECIMAL":
+            bin = dec2bin(parsed)
+        elif flag == "C_INSTRUCTION":
             # Join parsed components from corresponding dictionaries
             # and pad with 1's to match 16 bits of A instruction
             bin = '111' + comp[parsed[0]] + dest[parsed[1]] + jump[parsed[2]]
-
-        elif type(parsed) is type(0):
-            bin = dec2bin(parsed)
-
-        elif type(parsed) is type(''):
-            dec = table[parsed]
-            bin = dec2bin(dec)
-
         else:
             continue
 
         machine_code.append(bin)
 
-    with open(args[1], "w") as outfile:
+    if not filename.endswith(".asm"):
+        filename = filename + ".asm"
+
+    with open(filename.replace(".asm", ".hack"), "w") as outfile:
         outfile.write('\n'.join(machine_code)) # Join each list item with newline
 
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    if len(sys.argv) < 2:
+        print("Usage: assembler <filename>")
+        sys.exit(1)
+
+    main(sys.argv[1])
