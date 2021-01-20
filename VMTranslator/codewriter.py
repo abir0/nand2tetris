@@ -26,12 +26,14 @@ class CodeWriter:
                 "and" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nM=M&D\n",
                 "or" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nM=M|D\n",
                 "not" : "@SP\nA=M-1\nM=!M\n",
+                # Work in progress
                 "eq" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nD=M-D\n@GOTO\nD;JEQ\n@SP\nA=M-1\nM=-1\n(GOTO)\n@SP\nA=M-1\nM=1\n",
                 "gt" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nD=M-D\n@GOTO\nD;JEQ\n@SP\nA=M-1\nM=-1\n(GOTO)\n@SP\nA=M-1\nM=1\n",
                 "lt" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nD=M-D\n@GOTO\nD;JEQ\n@SP\nA=M-1\nM=-1\n(GOTO)\n@SP\nA=M-1\nM=1\n"
     }
 
     pushpop_map = {
+            # Work in progress
 
     }
 
@@ -51,4 +53,3 @@ class CodeWriter:
 if __name__ == "__main__":
     a = CodeWriter("Test.vm")
     a.writeArithmatic("add")
-    a.close()
