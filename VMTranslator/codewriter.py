@@ -20,21 +20,25 @@ class CodeWriter:
     }
 
     arithmatic_map = {
-                "add" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nM=M+D\n",
-                "sub" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nM=M-D\n",
+                "add" : "@SP\nAM=M-1\nD=M\nA=M-1\nM=M+D\n",
+                "sub" : "@SP\nAM=M-1\nD=M\nA=M-1\nM=M-D\n",
                 "neg" : "@SP\nA=M-1\nM=-M\n",
-                "and" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nM=M&D\n",
-                "or" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nM=M|D\n",
+                "and" : "@SP\nAM=M-1\nD=M\nA=M-1\nM=M&D\n",
+                "or" : "@SP\nAM=M-1\nD=M\nA=M-1\nM=M|D\n",
                 "not" : "@SP\nA=M-1\nM=!M\n",
-                # Work in progress
-                "eq" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nD=M-D\n@GOTO\nD;JEQ\n@SP\nA=M-1\nM=-1\n(GOTO)\n@SP\nA=M-1\nM=1\n",
-                "gt" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nD=M-D\n@GOTO\nD;JEQ\n@SP\nA=M-1\nM=-1\n(GOTO)\n@SP\nA=M-1\nM=1\n",
-                "lt" : "@SP\nA=M-1\nD=M\n@SP\nM=M-1\nA=M-1\nD=M-D\n@GOTO\nD;JEQ\n@SP\nA=M-1\nM=-1\n(GOTO)\n@SP\nA=M-1\nM=1\n"
+                "eq" : "@SP\nAM=M-1\nD=M\nA=M-1\nD=M-D\nM=0\n@END_EQ\nD;JNE\n@SP\nA=M-1\nM=-1\n(END_EQ)\n",
+                "gt" : "@SP\nAM=M-1\nD=M\nA=M-1\nD=M-D\nM=0\n@END_GT\nD;JLE\n@SP\nA=M-1\nM=-1\n(END_GT)\n",
+                "lt" : "@SP\nAM=M-1\nD=M\nA=M-1\nD=M-D\nM=0\n@END_LT\nD;JGE\n@SP\nA=M-1\nM=-1\n(END_LT)\n"
     }
 
     pushpop_map = {
-            # Work in progress
-
+            "push local" = "@i\nD=M\n@segment\nA=D+M\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+            "pop local" = "@i\nD=M\n@segment\nA=D+M\nD=A\n@R15\nM=D\n@SP\nAM=M-1\nD=M\n@R15\nA=M\nM=D\n",
+            "push constant" = "@i\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+            "push pointer" = "@thisthat\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+            "pop pointer" = "@SP\nAM=M-1\nD=M\n@thisthat\nM=D\n",
+            "push static" = "@filename.i\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+            "pop static" = "@SP\nAM=M-1\nD=M\n@filename.i\nM=D\n"
     }
 
     def __init__(self, filename):
