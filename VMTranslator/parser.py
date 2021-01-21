@@ -30,7 +30,7 @@ class Parser:
         return len(self.command.split(" ")) == 1 or len(self.command.split(" ")) == 3
 
     def commandType(self):
-        return self.COMMAND_TYPE[self.command.split(" ")[0]]
+        return Parser.COMMAND_TYPE[self.command.split(" ")[0]]
 
     def firstArgument(self):
         if len(self.command.split(" ")) == 1:
@@ -39,7 +39,7 @@ class Parser:
             return self.command.split(" ")[1]
 
     def secondArgument(self):
-        return int(self.command.split(" ")[2])
+        return self.command.split(" ")[2]
 
 
 #if __name__ == "__main__":

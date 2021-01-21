@@ -44,7 +44,8 @@ class CodeWriter:
     def writePushPop(self, command, segment, index):
         if segment in CodeWriter.segment_name:
             code = CodeWriter.pushpop_map[command + " " + "segment"]
-            code.replace("i", str(index)).replace("segment", CodeWriter.segment_name[segment])
+            code.replace("i", str(index))
+            code.replace("segment", CodeWriter.segment_name[segment])
             self.outfile.write(code)
         elif segment == "constant":
             code = CodeWriter.pushpop_map[command + " " + segment]
@@ -69,6 +70,7 @@ class CodeWriter:
         return "// " + line
 
     def close(self):
+        print("Done")
         self.outfile.close()
 
 
