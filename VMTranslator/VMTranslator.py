@@ -28,7 +28,7 @@ def main(filename):
         elif P.commandType() == "C_POP":
             C.writeComment(P.command)
             C.writePushPop("pop", P.firstArgument(), P.secondArgument())
-
+        C.close()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

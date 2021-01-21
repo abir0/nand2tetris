@@ -1,4 +1,4 @@
-
+import re
 
 class Parser:
 
@@ -18,33 +18,28 @@ class Parser:
 
     def __init__(self, filename):
         with open(filename, "r") as infile:
-            self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in lines]))
+            self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in infile.readlines()]))
 
     def hasMoreCommads(self):
-        return self.commands > 0
+        return len(self.commands) > 0
 
     def nextCommad(self):
         self.command = self.commands.pop(0)
 
-    @staticmethod
-    def isValidCommand():
-        return len(Parser.command.split(" ")) == 1 or len(Parser.command.split(" ")) == 3
+    def isValidCommand(self):
+        return len(self.command.split(" ")) == 1 or len(self.command.split(" ")) == 3
 
-    @staticmethod
-    def commandType():
-        return Parser.COMMAND_TYPE[Parser.command.split(" ")[0]]
+    def commandType(self):
+        return self.COMMAND_TYPE[self.command.split(" ")[0]]
 
-    @staticmethod
-    def firstArgument():
-        if len(Parser.command.split(" ")) == 1:
-            return Parser.command.split(" ")[0]
+    def firstArgument(self):
+        if len(self.command.split(" ")) == 1:
+            return self.command.split(" ")[0]
         else:
-            return Parser.command.split(" ")[1]
+            return self.command.split(" ")[1]
 
-    @staticmethod
-    def secondArgument():
-        return int(Parser.command.split(" ")[2])
+    def secondArgument(self):
+        return int(self.command.split(" ")[2])
 
 
-if __name__ == "__main__":
-    # Work in progress
+#if __name__ == "__main__":

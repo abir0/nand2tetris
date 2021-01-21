@@ -39,28 +39,28 @@ class CodeWriter:
         self.outfile.write("\n")
 
     def writeArithmatic(self, command):
-        self.outfile.write(arithmatic_map[command])
+        self.outfile.write(CodeWriter.arithmatic_map[command])
 
     def writePushPop(self, command, segment, index):
-        if segment in segment_name:
-            code = pushpop_map[command + " " + "segment"]
-            code.replace("i", str(index)).replace("segment", segment_name[segment])
+        if segment in CodeWriter.segment_name:
+            code = CodeWriter.pushpop_map[command + " " + "segment"]
+            code.replace("i", str(index)).replace("segment", CodeWriter.segment_name[segment])
             self.outfile.write(code)
         elif segment == "constant":
-            code = pushpop_map[command + " " + segment]
+            code = CodeWriter.pushpop_map[command + " " + segment]
             code.replace("i", str(index))
             self.outfile.write(code)
         elif segment == "pointer":
             if index == 0:
-                code = pushpop_map[command + " " + segment]
+                code = CodeWriter.pushpop_map[command + " " + segment]
                 code.replace("thisthat", "THIS")
                 self.outfile.write(code)
             elif index == 1:
-                code = pushpop_map[command + " " + segment]
+                code = CodeWriter.pushpop_map[command + " " + segment]
                 code.replace("thisthat", "THAT")
                 self.outfile.write(code)
         elif segment == "static":
-            code = pushpop_map[command + " " + segment]
+            code = CodeWriter.pushpop_map[command + " " + segment]
             code.replace("filename.i", self.filename + "." + str(index))
             self.outfile.write(code)
 
@@ -68,5 +68,8 @@ class CodeWriter:
     def writeComment(line):
         return "// " + line
 
+    def close(self):
+        self.outfile.close()
 
-if __name__ == "__main__":
+
+#if __name__ == "__main__":
