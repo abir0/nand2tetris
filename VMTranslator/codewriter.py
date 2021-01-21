@@ -53,6 +53,10 @@ class CodeWriter:
     def writePushPop(command, segment, index):
         return CodeWriter.pushpop_map[command]
 
+    @staticmethod
+    def writeComment(line):
+        return "// " + line
+
 
 if __name__ == "__main__":
     a = CodeWriter("Test.vm")
