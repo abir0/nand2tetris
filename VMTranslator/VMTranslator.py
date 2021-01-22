@@ -13,24 +13,31 @@ def main(filename):
         sys.exit(1)
 
     C = CodeWriter(filename)
+
     while P.hasMoreCommads():
+
         P.nextCommad()
+
         if not P.isValidCommand():
             print("Command is not valid.")
             sys.exit(1)
 
         if P.commandType() == "C_ARITHMATIC":
-            C.writeComment(P.command)
+            C.writeComment(P.getCommand())
             C.writeArithmatic(P.firstArgument())
+
         elif P.commandType() == "C_PUSH":
-            C.writeComment(P.command)
+            C.writeComment(P.getCommand())
             C.writePushPop("push", P.firstArgument(), P.secondArgument())
+
         elif P.commandType() == "C_POP":
-            C.writeComment(P.command)
+            C.writeComment(P.getCommand())
             C.writePushPop("pop", P.firstArgument(), P.secondArgument())
+
     C.close()
 
 if __name__ == "__main__":
+    
     if len(sys.argv) < 2:
         print("Usage: VMTranslator <filename>")
         sys.exit(1)
