@@ -27,8 +27,8 @@ class CodeWriter:
             "push temp" : "@{i}\nD=A\n@5\nA=A+D\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
             "pop temp" : "@{i}\nD=A\n@5\nAD=A+D\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n",
             "push constant" : "@{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n",
-            "push pointer" : "@{thisthat}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
-            "pop pointer" : "@SP\nAM=M-1\nD=M\n@{thisthat}\nM=D\n",
+            "push pointer" : "@{pointer}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+            "pop pointer" : "@SP\nAM=M-1\nD=M\n@{pointer}\nM=D\n",
             "push static" : "@{filename}.{i}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
             "pop static" : "@SP\nAM=M-1\nD=M\n@{filename}.{i}\nM=D\n"
     }
@@ -69,14 +69,9 @@ class CodeWriter:
             self.outfile.write(code)
 
         elif segment == "pointer":
-            if index == 0:
-                code = CodeWriter.pushpop_map[command + " " + segment]
-                code = code.format(thisthat = "THIS")
-                self.outfile.write(code)
-            elif index == 1:
-                code = CodeWriter.pushpop_map[command + " " + segment]
-                code = code.format(thisthat = "THAT")
-                self.outfile.write(code)
+            code = CodeWriter.pushpop_map[command + " " + segment]
+            code = code.format(pointer = str(3 + int(index)))
+            self.outfile.write(code)
 
         elif segment == "static":
 
