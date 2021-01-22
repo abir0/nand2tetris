@@ -16,9 +16,9 @@ class CodeWriter:
                 "and" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M&D\n",
                 "or" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M|D\n",
                 "not" : "@SP\nA=M-1\nM=!M\n",
-                "eq" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_EQ\nD;JNE\n@SP\nA=M-1\nM=-1\n(END_EQ)\n",
-                "gt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_GT\nD;JLE\n@SP\nA=M-1\nM=-1\n(END_GT)\n",
-                "lt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_LT\nD;JGE\n@SP\nA=M-1\nM=-1\n(END_LT)\n"
+                "eq" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_EQ_{i}\nD;JNE\n@SP\nA=M-1\nM=-1\n(END_EQ_{i})\n",
+                "gt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_GT_{i}\nD;JLE\n@SP\nA=M-1\nM=-1\n(END_GT_{i})\n",
+                "lt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_LT_{i}\nD;JGE\n@SP\nA=M-1\nM=-1\n(END_LT_{i})\n"
     }
 
     pushpop_map = {
@@ -37,9 +37,20 @@ class CodeWriter:
         self.filename = filename.replace(".vm", "").replace("./", "").replace(".\\", "")
         self.outfile = open(self.filename + ".asm", "w")
         self.outfile.write("// Translation of {} file\n".format(self.filename + ".asm"))
+        self.jump_count = 0
+
+    def increase_count(self):
+        self.jump_count += 1
 
     def writeArithmatic(self, command):
-        self.outfile.write(CodeWriter.arithmatic_map[command])
+        if command in ["eq", "gt", "lt"]:
+            code = CodeWriter.arithmatic_map[command]
+            code = code.format(i = self.jump_count)
+            self.outfile.write(code)
+            CodeWriter.increase_count(self)
+        else:
+            code = CodeWriter.arithmatic_map[command]
+            self.outfile.write(code)
 
     def writePushPop(self, command, segment, index):
         if segment in CodeWriter.segment_name:
@@ -77,7 +88,6 @@ class CodeWriter:
         self.outfile.write("//" + line + "\n")
 
     def close(self):
-        print("Done")
         self.outfile.close()
 
 
