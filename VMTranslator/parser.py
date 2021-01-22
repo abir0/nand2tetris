@@ -26,6 +26,9 @@ class Parser:
     def nextCommad(self):
         self.command = self.commands.pop(0)
 
+    def getCommand(self):
+        return self.command
+
     def isValidCommand(self):
         return len(self.command.split(" ")) == 1 or len(self.command.split(" ")) == 3
 
