@@ -1,9 +1,14 @@
 import sys
 import re
+from CodeWriter import *
+from Parser import *
 
+def main(filename):
 
-class Parser:
+    try:
+        P = Parser(filename)
 
+<<<<<<< HEAD
     def __init__(self, filename):
         with open(filename, "r") as infile:
             self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in lines]))
@@ -33,10 +38,17 @@ class Parser:
 
     def secondArgument(self):
         return int(self.command.split(" ")[2])
+=======
+    except FileNotFoundError:
+        print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
+        sys.exit(1)
+>>>>>>> dev
 
+    C = CodeWriter(filename)
 
-class CodeWriter:
+    while P.hasMoreCommads():
 
+<<<<<<< HEAD
     segment_map = {
             "SP"    : 0,
             "LCL"   : 1,
@@ -66,7 +78,32 @@ class CodeWriter:
 
 def main():
     return
+=======
+        P.nextCommad()
 
+        if not P.isValidCommand():
+            print("Command is not valid.")
+            sys.exit(1)
+
+        if P.commandType() == "C_ARITHMATIC":
+            C.writeComment(P.getCommand())
+            C.writeArithmatic(P.firstArgument())
+
+        elif P.commandType() == "C_PUSH":
+            C.writeComment(P.getCommand())
+            C.writePushPop("push", P.firstArgument(), P.secondArgument())
+
+        elif P.commandType() == "C_POP":
+            C.writeComment(P.getCommand())
+            C.writePushPop("pop", P.firstArgument(), P.secondArgument())
+>>>>>>> dev
+
+    C.close()
 
 if __name__ == "__main__":
-    main()
+    
+    if len(sys.argv) < 2:
+        print("Usage: VMTranslator <filename>")
+        sys.exit(1)
+
+    main(sys.argv[1])
