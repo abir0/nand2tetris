@@ -29,9 +29,6 @@ class Parser:
     def getCommand(self):
         return self.command
 
-    def isValidCommand(self):
-        return len(self.command.split(" ")) == 1 or len(self.command.split(" ")) == 3
-
     def commandType(self):
         return Parser.COMMAND_TYPE[self.command.split(" ")[0]]
 

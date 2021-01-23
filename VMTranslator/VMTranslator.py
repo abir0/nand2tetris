@@ -18,10 +18,6 @@ def main(filename):
 
         P.nextCommad()
 
-        if not P.isValidCommand():
-            print("Command is not valid.")
-            sys.exit(1)
-
         if P.commandType() == "C_ARITHMATIC":
             C.writeComment(P.getCommand())
             C.writeArithmatic(P.firstArgument())
@@ -37,7 +33,7 @@ def main(filename):
     C.close()
 
 if __name__ == "__main__":
-    
+
     if len(sys.argv) < 2:
         print("Usage: VMTranslator <filename>")
         sys.exit(1)
