@@ -1,7 +1,9 @@
 
 
 class CodeWriter:
+    """Take parsed VM code and write assembly code into new file."""
 
+    # Segment names in assembly language
     SEGMENT_NAME = {
         "local" : "LCL",
         "argument" : "ARG",
@@ -9,6 +11,7 @@ class CodeWriter:
         "that" : "THAT"
     }
 
+    # Assembly mapping of arithmatic commands
     ARITHMATIC_MAP = {
                 "add" : ("@SP\n" +
                          "AM=M-1\n" +
@@ -74,6 +77,7 @@ class CodeWriter:
                         "(END_LT_{i})\n")
     }
 
+    # Assembly mapping of memory segment commands
     PUSHPOP_MAP = {
             "push segment" : ("@{i}\n" +
                               "D=A\n" +
@@ -154,9 +158,11 @@ class CodeWriter:
         self.jump_count = 0
 
     def increase_count(self):
+        """Count the jump commands."""
         self.jump_count += 1
 
     def writeArithmatic(self, command):
+        """Write arithmatic codes into file."""
         if command in ["eq", "gt", "lt"]:
             code = CodeWriter.ARITHMATIC_MAP[command]
             code = code.format(i = self.jump_count)
@@ -167,6 +173,7 @@ class CodeWriter:
             self.outfile.write(code)
 
     def writePushPop(self, command, segment, index):
+        """Write memory segment codes into file."""
         if segment in CodeWriter.SEGMENT_NAME:
             code = CodeWriter.PUSHPOP_MAP[command + " " + "segment"]
             code = code.format(i = str(index), segment = CodeWriter.SEGMENT_NAME[segment])
@@ -188,16 +195,16 @@ class CodeWriter:
             self.outfile.write(code)
 
         elif segment == "static":
-
             code = CodeWriter.PUSHPOP_MAP[command + " " + segment]
             code = code.format(filename = self.filename, i = str(index))
             self.outfile.write(code)
 
     def writeComment(self, line):
+        """Write VM commands as comment into file."""
         self.outfile.write("//" + line + "\n")
 
     def close(self):
-        self.outfile.close()
+        self.outfile.close()    # close file
 
 
 #if __name__ == "__main__":

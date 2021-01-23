@@ -6,31 +6,30 @@ from Parser import *
 def main(filename):
 
     try:
-        P = Parser(filename)
-
+        P = Parser(filename)    # parse the file contents
     except FileNotFoundError:
         print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
         sys.exit(1)
 
-    C = CodeWriter(filename)
+    C = CodeWriter(filename)    # open the file into CodeWriter
 
-    while P.hasMoreCommads():
+    while P.hasMoreCommads():   # if more commands
 
-        P.nextCommad()
+        P.nextCommad()  # put next line into current command
 
-        if P.commandType() == "C_ARITHMATIC":
+        if P.commandType() == "C_ARITHMATIC":   # write arithmatic commands
             C.writeComment(P.getCommand())
             C.writeArithmatic(P.commandName())
 
-        elif P.commandType() == "C_PUSH":
+        elif P.commandType() == "C_PUSH":   # write push commands
             C.writeComment(P.getCommand())
             C.writePushPop("push", P.firstArgument(), P.secondArgument())
 
-        elif P.commandType() == "C_POP":
+        elif P.commandType() == "C_POP":    # write pop commands
             C.writeComment(P.getCommand())
             C.writePushPop("pop", P.firstArgument(), P.secondArgument())
 
-    C.close()
+    C.close()   # don't forget to close the file
 
 if __name__ == "__main__":
 
