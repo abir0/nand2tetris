@@ -13,7 +13,13 @@ class Parser:
              "not" : "C_ARITHMATIC",
              "eq" : "C_ARITHMATIC",
              "gt" : "C_ARITHMATIC",
-             "lt" : "C_ARITHMATIC"
+             "lt" : "C_ARITHMATIC",
+             "label" : "C_LABEL",
+             "goto" : "C_GOTO",
+             "if-goto" : "C_IFGOTO",
+             "function" : "C_FUNCTION",
+             "return" : "C_RETURN",
+             "call" : "C_CALL"
     }
 
     def __init__(self, filename):
@@ -30,16 +36,16 @@ class Parser:
         return self.command
 
     def commandType(self):
-        return Parser.COMMAND_TYPE[self.command.split(" ")[0]]
+        return Parser.COMMAND_TYPE[self.command.split()[0]]
+
+    def commandName(self):
+        return self.command.split()[0]
 
     def firstArgument(self):
-        if len(self.command.split(" ")) == 1:
-            return self.command.split(" ")[0]
-        else:
-            return self.command.split(" ")[1]
+        return self.command.split()[1]
 
     def secondArgument(self):
-        return self.command.split(" ")[2]
+        return self.command.split()[2]
 
 
 #if __name__ == "__main__":

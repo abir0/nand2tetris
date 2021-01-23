@@ -20,7 +20,7 @@ def main(filename):
 
         if P.commandType() == "C_ARITHMATIC":
             C.writeComment(P.getCommand())
-            C.writeArithmatic(P.firstArgument())
+            C.writeArithmatic(P.commandName())
 
         elif P.commandType() == "C_PUSH":
             C.writeComment(P.getCommand())
