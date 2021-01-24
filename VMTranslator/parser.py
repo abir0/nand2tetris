@@ -1,6 +1,7 @@
 import re
 import sys
 
+
 class Parser:
     """Parser class for VM translator."""
 
@@ -63,9 +64,13 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: .\Parser.py <filename>")
         sys.exit(1)
-        
+
     P = Parser(sys.argv[1])
 
+    count = 0
+    print("SL | TYPE | COMMAND")
+    print("-------------------")
     while P.hasMoreCommads():
         P.nextCommad()
-        print("Command: {}Type: {}".format(P.getCommand(), re.sub("C_", "", P.commandType())))
+        count += 1
+        print("{} | {} | {}".format(count, re.sub("C_", "", P.commandType()), P.getCommand()))
