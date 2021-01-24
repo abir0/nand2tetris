@@ -23,11 +23,11 @@ def main(filename):
 
         elif P.commandType() == "C_PUSH":   # write push commands
             C.writeComment(P.getCommand())
-            C.writePushPop("push", P.firstArgument(), P.secondArgument())
+            C.writePushPop(P.commandName(), P.firstArgument(), P.secondArgument())
 
         elif P.commandType() == "C_POP":    # write pop commands
             C.writeComment(P.getCommand())
-            C.writePushPop("pop", P.firstArgument(), P.secondArgument())
+            C.writePushPop(P.commandName(), P.firstArgument(), P.secondArgument())
 
     C.close()   # don't forget to close the file
 
