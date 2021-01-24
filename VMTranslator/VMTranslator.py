@@ -1,19 +1,19 @@
 import sys
 import re
-from CodeWriter import *
-from Parser import *
+from codewriter import CodeWriter
+from parser import Parser
 
 def main(filename):
 
     try:
-        P = Parser(filename)    # parse the file contents
+        P = Parser(filename)
     except FileNotFoundError:
         print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
         sys.exit(1)
 
     C = CodeWriter(filename)    # open the file into CodeWriter
 
-    while P.hasMoreCommads():   # if more commands
+    while P.hasMoreCommads():
 
         P.nextCommad()  # put next line into current command
 
