@@ -1,6 +1,9 @@
 import re
+import sys
+
 
 class Parser:
+    """Parser class for VM translator."""
 
     COMMAND_TYPE = {
             "push" : "C_PUSH",
@@ -13,36 +16,63 @@ class Parser:
              "not" : "C_ARITHMATIC",
              "eq" : "C_ARITHMATIC",
              "gt" : "C_ARITHMATIC",
-             "lt" : "C_ARITHMATIC"
+             "lt" : "C_ARITHMATIC",
+             "label" : "C_LABEL",
+             "goto" : "C_GOTO",
+             "if-goto" : "C_IFGOTO",
+             "function" : "C_FUNCTION",
+             "return" : "C_RETURN",
+             "call" : "C_CALL"
     }
 
-    def __init__(self, filename):
-        with open(filename, "r") as infile:
-            self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in infile.readlines()]))
+    def __init__(self, data):
+        # Remove comments and filter each line using len() function
+        self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in data]))
 
     def hasMoreCommads(self):
-        return len(self.commands) > 0
+        """Return True if there are more items in the list."""
+        return bool(self.commands)
 
     def nextCommad(self):
-        self.command = self.commands.pop(0)
+        """Put the first item of the list into current command."""
+        self.command = self.commands.pop(0)     # pop() method also removes it from the list
 
     def getCommand(self):
+        """Return the current command."""
         return self.command
 
-    def isValidCommand(self):
-        return len(self.command.split(" ")) == 1 or len(self.command.split(" ")) == 3
-
     def commandType(self):
-        return Parser.COMMAND_TYPE[self.command.split(" ")[0]]
+        """Return the command type of the current command."""
+        return Parser.COMMAND_TYPE[self.command.split()[0]]
+
+    def commandName(self):
+        """Return the command name of the current command."""
+        return self.command.split()[0]
 
     def firstArgument(self):
-        if len(self.command.split(" ")) == 1:
-            return self.command.split(" ")[0]
-        else:
-            return self.command.split(" ")[1]
+        """Return the command's first argument of the current command."""
+        return self.command.split()[1]
 
     def secondArgument(self):
-        return self.command.split(" ")[2]
+        """Return the command's second argument of the current command."""
+        return self.command.split()[2]
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
+
+    if len(sys.argv) < 2:
+        print("Usage: .\Parser.py <filename>")
+        sys.exit(1)
+
+    with open(sys.argv[1], "r") as infile:
+        data = infile.readlines()
+        
+    P = Parser(data)
+
+    count = 0
+    print("SL | TYPE | COMMAND")
+    print("-------------------")
+    while P.hasMoreCommads():
+        P.nextCommad()
+        count += 1
+        print("{} | {} | {}".format(count, re.sub("C_", "", P.commandType()), P.getCommand()))
