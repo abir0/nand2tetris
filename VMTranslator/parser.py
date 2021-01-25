@@ -25,10 +25,9 @@ class Parser:
              "call" : "C_CALL"
     }
 
-    def __init__(self, filename):
-        with open(filename, "r") as infile:
-            # Remove comments and filter each line using len() function
-            self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in infile.readlines()]))
+    def __init__(self, data):
+        # Remove comments and filter each line using len() function
+        self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in data]))
 
     def hasMoreCommads(self):
         """Return True if there are more items in the list."""
@@ -65,7 +64,10 @@ if __name__ == "__main__":
         print("Usage: .\Parser.py <filename>")
         sys.exit(1)
 
-    P = Parser(sys.argv[1])
+    with open(sys.argv[1], "r") as infile:
+        data = infile.readlines()
+        
+    P = Parser(data)
 
     count = 0
     print("SL | TYPE | COMMAND")

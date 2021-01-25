@@ -13,153 +13,36 @@ class CodeWriter:
 
     # Assembly mapping of arithmatic commands
     ARITHMATIC_MAP = {
-                "add" : ("@SP\n" +
-                         "AM=M-1\n" +
-                         "D=M\n" +
-                         "A=A-1\n" +
-                         "M=M+D\n"),
-                "sub" : ("@SP\n" +
-                         "AM=M-1\n" +
-                         "D=M\n" +
-                         "A=A-1\n" +
-                         "M=M-D\n"),
-                "neg" : ("@SP\n" +
-                         "A=M-1\n" +
-                         "M=-M\n"),
-                "and" : ("@SP\n" +
-                         "AM=M-1\n"
-                         "D=M\n" +
-                         "A=A-1\n" +
-                         "M=M&D\n"),
-                "or" : ("@SP\n" +
-                        "AM=M-1\n" +
-                        "D=M\n" +
-                        "A=A-1\n" +
-                        "M=M|D\n"),
-                "not" : ("@SP\n" +
-                         "A=M-1\n" +
-                         "M=!M\n"),
-                "eq" : ("@SP\n" +
-                        "AM=M-1\n" +
-                        "D=M\n" +
-                        "A=A-1\n" +
-                        "D=M-D\n" +
-                        "M=0\n" +
-                        "@END_EQ_{i}\n" +
-                        "D;JNE\n" +
-                        "@SP\n" +
-                        "A=M-1\n" +
-                        "M=-1\n" +
-                        "(END_EQ_{i})\n"),
-                "gt" : ("@SP\n" +
-                        "AM=M-1\n" +
-                        "D=M\n" +
-                        "A=A-1\n" +
-                        "D=M-D\n" +
-                        "M=0\n" +
-                        "@END_GT_{i}\n" +
-                        "D;JLE\n" +
-                        "@SP\n" +
-                        "A=M-1\n" +
-                        "M=-1\n" +
-                        "(END_GT_{i})\n"),
-                "lt" : ("@SP\n" +
-                        "AM=M-1\n" +
-                        "D=M\n" +
-                        "A=A-1\n" +
-                        "D=M-D\n" +
-                        "M=0\n" +
-                        "@END_LT_{i}\n" +
-                        "D;JGE\n" +
-                        "@SP\n" +
-                        "A=M-1\n" +
-                        "M=-1\n" +
-                        "(END_LT_{i})\n")
+            "add" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M+D\n",
+            "sub" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M-D\n",
+            "neg" : "@SP\nA=M-1\nM=-M\n",
+            "and" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M&D\n",
+            "or" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M|D\n",
+            "not" : "@SP\nA=M-1\nM=!M\n",
+            "eq" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_EQ_{i}\nD;JNE\n@SP\nA=M-1\nM=-1\n(END_EQ_{i})\n",
+            "gt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_GT_{i}\nD;JLE\n@SP\nA=M-1\nM=-1\n(END_GT_{i})\n",
+            "lt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_LT_{i}\nD;JGE\n@SP\nA=M-1\nM=-1\n(END_LT_{i})\n"
     }
 
     # Assembly mapping of memory segment commands
     PUSHPOP_MAP = {
-            "push segment" : ("@{i}\n" +
-                              "D=A\n" +
-                              "@{segment}\n" +
-                              "A=M+D\n" +
-                              "D=M\n" +
-                              "@SP\n" +
-                              "AM=M+1\n" +
-                              "A=A-1\n" +
-                              "M=D\n"),
-            "pop segment" : ("@{i}\n" +
-                             "D=A\n" +
-                             "@{segment}\n" +
-                             "AD=M+D\n" +
-                             "@R13\n" +
-                             "M=D\n" +
-                             "@SP\n" +
-                             "AM=M-1\n" +
-                             "D=M\n" +
-                             "@R13\n" +
-                             "A=M\n" +
-                             "M=D\n"),
-            "push temp" : ("@{i}\n" +
-                           "D=A\n" +
-                           "@5\n" +
-                           "A=A+D\n" +
-                           "D=M\n" +
-                           "@SP\n" +
-                           "AM=M+1\n" +
-                           "A=A-1\n" +
-                           "M=D\n"),
-            "pop temp" : ("@{i}\n" +
-                          "D=A\n" +
-                          "@5\n" +
-                          "AD=A+D\n" +
-                          "@R13\n" +
-                          "M=D\n" +
-                          "@SP\n" +
-                          "AM=M-1\n" +
-                          "D=M\n" +
-                          "@R13\n" +
-                          "A=M\n" +
-                          "M=D\n"),
-            "push constant" : ("@{i}\n" +
-                               "D=A\n" +
-                               "@SP\n" +
-                               "AM=M+1\n" +
-                               "A=A-1\n" +
-                               "M=D\n"),
-            "push pointer" : ("@{pointer}\n" +
-                              "D=M\n" +
-                              "@SP\n" +
-                              "AM=M+1\n" +
-                              "A=A-1\n" +
-                              "M=D\n"),
-            "pop pointer" : ("@SP\n" +
-                             "AM=M-1\n" +
-                             "D=M\n" +
-                             "@{pointer}\n" +
-                             "M=D\n"),
-            "push static" : ("@{filename}.{i}\n" +
-                             "D=M\n" +
-                             "@SP\n" +
-                             "AM=M+1\n" +
-                             "A=A-1\n" +
-                             "M=D\n"),
-            "pop static" : ("@SP\n" +
-                            "AM=M-1\n" +
-                            "D=M\n" +
-                            "@{filename}.{i}\n" +
-                            "M=D\n")
+        "push segment" : "@{i}\nD=A\n@{segment}\nA=M+D\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+        "pop segment" : "@{i}\nD=A\n@{segment}\nAD=M+D\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n",
+        "push temp" : "@{i}\nD=A\n@5\nA=A+D\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+        "pop temp" : "@{i}\nD=A\n@5\nAD=A+D\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n",
+        "push constant" : "@{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+        "push pointer" : "@{pointer}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+        "pop pointer" : "@SP\nAM=M-1\nD=M\n@{pointer}\nM=D\n",
+        "push static" : "@{filename}.{i}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n",
+        "pop static" : "@SP\nAM=M-1\nD=M\n@{filename}.{i}\nM=D\n"
     }
 
     def __init__(self, filename):
         self.filename = filename.replace(".vm", "").replace("./", "").replace(".\\", "")
         self.outfile = open(self.filename + ".asm", "w")
         self.outfile.write("// Translation of {} file\n".format(self.filename + ".asm"))
-        self.jump_count = 0
+        self.jump_count = 0     # count the jump commands
 
-    def increase_count(self):
-        """Count the jump commands."""
-        self.jump_count += 1
 
     def writeArithmatic(self, command):
         """Write arithmatic codes into file."""
@@ -167,7 +50,7 @@ class CodeWriter:
             code = CodeWriter.ARITHMATIC_MAP[command]
             code = code.format(i = self.jump_count)
             self.outfile.write(code)
-            CodeWriter.increase_count(self)
+            self.jump_count += 1
         else:
             code = CodeWriter.ARITHMATIC_MAP[command]
             self.outfile.write(code)
@@ -198,6 +81,24 @@ class CodeWriter:
             code = CodeWriter.PUSHPOP_MAP[command + " " + segment]
             code = code.format(filename = self.filename, i = str(index))
             self.outfile.write(code)
+
+    def writeLabel(self):
+        pass
+
+    def writeGoto(self):
+        pass
+
+    def writeIfgoto(self):
+        pass
+
+    def writeFunction(self):
+        pass
+
+    def writeReturn(self):
+        pass
+
+    def writeCall(self):
+        pass
 
     def writeComment(self, line):
         """Write VM commands as comment into file."""
