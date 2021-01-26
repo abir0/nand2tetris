@@ -26,36 +26,39 @@ class Parser:
     }
 
     def __init__(self, data):
-        # Remove comments and filter each line using len() function
-        self.commands = list(filter(len, [re.sub(r"//.*$", "", line).strip() for line in data]))
+        # Remove empty line using len() function into filter
+        self.lines = list(filter(len, data))
 
     def hasMoreCommads(self):
         """Return True if there are more items in the list."""
-        return bool(self.commands)
+        return bool(self.lines)
 
-    def nextCommad(self):
-        """Put the first item of the list into current command."""
-        self.command = self.commands.pop(0)     # pop() method also removes it from the list
+    def nextCommand(self):
+        """Put the first item of the list into current line."""
+        self.line = self.lines.pop(0)     # pop() method also removes it from the list
 
-    def getCommand(self):
-        """Return the current command."""
-        return self.command
+    def sourceLine(self):
+        """Return the current line."""
+        return self.line.strip()
 
     def commandType(self):
-        """Return the command type of the current command."""
-        return Parser.COMMAND_TYPE[self.command.split()[0]]
+        """Return the command type of the current line."""
+        try:
+            return Parser.COMMAND_TYPE[self.line.split()[0]]
+        except :
+            return "NO_COMMAND"
 
-    def commandName(self):
-        """Return the command name of the current command."""
-        return self.command.split()[0]
+    def getCommand(self):
+        """Return the command of the current line."""
+        return self.line.split()[0]
 
     def firstArgument(self):
-        """Return the command's first argument of the current command."""
-        return self.command.split()[1]
+        """Return the line's first argument."""
+        return self.line.split()[1]
 
     def secondArgument(self):
-        """Return the command's second argument of the current command."""
-        return self.command.split()[2]
+        """Return the line's second argument."""
+        return self.line.split()[2]
 
 
 if __name__ == "__main__":
@@ -66,7 +69,7 @@ if __name__ == "__main__":
 
     with open(sys.argv[1], "r") as infile:
         data = infile.readlines()
-        
+
     P = Parser(data)
 
     count = 0
@@ -75,4 +78,4 @@ if __name__ == "__main__":
     while P.hasMoreCommads():
         P.nextCommad()
         count += 1
-        print("{} | {} | {}".format(count, re.sub("C_", "", P.commandType()), P.getCommand()))
+        print("{} | {} | {}".format(count, re.sub("C_", "", P.commandType()), P.sourceLine()))

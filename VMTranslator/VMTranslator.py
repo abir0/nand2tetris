@@ -19,37 +19,43 @@ def main(filename):
 
     while P.hasMoreCommads():
 
-        P.nextCommad()  # put next line into current command
+        P.nextCommand()  # put next line into current command
 
-        if P.commandType() == "C_ARITHMATIC":   # write arithmatic commands
-            C.writeComment(P.getCommand())
-            C.writeArithmatic(P.commandName())
+        if P.commandType() == "NO_COMMAND":
+            C.writeComment(P.sourceLine())
 
         elif P.commandType() == "C_PUSH":   # write push commands
-            C.writeComment(P.getCommand())
-            C.writePushPop(P.commandName(), P.firstArgument(), P.secondArgument())
+            C.writeComment(P.sourceLine())
+            C.writePushPop(P.getCommand(), P.firstArgument(), P.secondArgument())
 
         elif P.commandType() == "C_POP":    # write pop commands
-            C.writeComment(P.getCommand())
-            C.writePushPop(P.commandName(), P.firstArgument(), P.secondArgument())
+            C.writeComment(P.sourceLine())
+            C.writePushPop(P.getCommand(), P.firstArgument(), P.secondArgument())
+
+        elif P.commandType() == "C_ARITHMATIC":   # write arithmatic commands
+            C.writeComment(P.sourceLine())
+            C.writeArithmatic(P.getCommand())
 
         elif P.commandType() == "C_LABEL":
-            pass
+            C.writeComment(P.sourceLine())
+            C.writeLabel(P.firstArgument())
 
         elif P.commandType() == "C_GOTO":
-            pass
+            C.writeComment(P.sourceLine())
+            C.writeGoto(P.firstArgument())
 
         elif P.commandType() == "C_IFGOTO":
-            pass
+            C.writeComment(P.sourceLine())
+            C.writeIfgoto(P.firstArgument())
 
         elif P.commandType() == "C_FUNCTION":
-            pass
+            C.writeComment(P.sourceLine())
 
         elif P.commandType() == "C_RETURN":
-            pass
+            C.writeComment(P.sourceLine())
 
         elif P.commandType() == "C_CALL":
-            pass
+            C.writeComment(P.sourceLine())
 
     C.close()   # don't forget to close the file
 

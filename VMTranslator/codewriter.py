@@ -50,7 +50,7 @@ class CodeWriter:
             code = CodeWriter.ARITHMATIC_MAP[command]
             code = code.format(i = self.jump_count)
             self.outfile.write(code)
-            self.jump_count += 1
+            self.jump_count += 1    # increament the count
         else:
             code = CodeWriter.ARITHMATIC_MAP[command]
             self.outfile.write(code)
@@ -82,14 +82,18 @@ class CodeWriter:
             code = code.format(filename = self.filename, i = str(index))
             self.outfile.write(code)
 
-    def writeLabel(self):
-        pass
+    def writeLabel(self, arg1):
+        self.outfile.write("(" + arg1 + ")\n")
+        self.outfile.write("@SP\nM=M-1\n")
 
-    def writeGoto(self):
-        pass
+    def writeGoto(self, arg1):
+        self.outfile.write("@" + arg1 + "\n")
+        self.outfile.write("0;JMP\n")
 
-    def writeIfgoto(self):
-        pass
+    def writeIfgoto(self, arg1):
+        self.outfile.write("D=M\n")
+        self.outfile.write("@" + arg1 + "\n")
+        self.outfile.write("D;JNE\n")
 
     def writeFunction(self):
         pass
@@ -102,7 +106,7 @@ class CodeWriter:
 
     def writeComment(self, line):
         """Write VM commands as comment into file."""
-        self.outfile.write("//" + line + "\n")
+        self.outfile.write("  //" + line + "\n")
 
     def close(self):
         self.outfile.close()    # close file
