@@ -63,27 +63,21 @@ class Parser:
 
 if __name__ == "__main__":
 
-    try:
-        with open(sys.argv[1], "r") as infile:
-            data = infile.readlines()
-    except:
-        data = []
-        # Test cases
-        for i in ["push", "pop"]:
-            data.append(i + " local 1")
+    if len(sys.argv) < 2:
+        print("Usage: .\parser.py <filename>")
+        sys.exit(1)
 
-        for i in ["add", "sub", "neg", "and", "or", "not", "eq", "lt", "gt", "eq", "lt", "gt"]:
-            data.append(i)
-
-        data.append("label TEST_LABEL")
-        data.append("goto TEST_LABEL")
-        data.append("if-goto TEST_LABEL")
+    with open(sys.argv[1], "r") as infile:
+        data = infile.readlines()
 
     P = Parser(data)
 
-    count = 0
-    print("Line --> Type")
-    print("-------------")
+    commands = {}
     while P.hasMoreCommads():
         P.nextCommand()
-        print("{} --> {}".format(P.sourceLine(), re.sub("C_", "", P.commandType())))
+        commands[P.commandType()] = commands.get(P.commandType(), 0) + 1
+
+    for key, val in sorted(commands.items(), key= lambda x: x[1], reverse=True):
+        print("{}: {}".format(key, val))
+
+    print("Total lines: {} ".format(sum(commands.values())))
