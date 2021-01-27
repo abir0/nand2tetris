@@ -5,17 +5,25 @@ from Parser import Parser
 from CodeWriter import CodeWriter
 
 
-def main(filename):
+def main(filepath):
 
     try:
-        with open(filename, "r") as infile:
-            data = infile.readlines()
+        if os.path.isfile(filepath):
+            with open(filepath, "r") as infile:
+                data = infile.readlines()
+        else:
+            data = []
+            for filename in os.listdir(filepath):
+                if not file.endswith(".vm"):
+                    continue
+                with open(os.path.join(filepath, filename), "r") as infile:
+                    data += infile.readlines()
     except FileNotFoundError:
-        print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
+        print("No such file: \'{}\'\nPlease enter correct filepath".format(filepath))
         sys.exit(1)
 
     P = Parser(data)
-    C = CodeWriter(filename)    # open the file into CodeWriter
+    C = CodeWriter(filepath)    # open the file into CodeWriter
 
     while P.hasMoreCommads():
 
@@ -62,7 +70,7 @@ def main(filename):
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
-        print("Usage: VMtranslator <filename>")
+        print("Usage: VMtranslator <filepath>")
         sys.exit(1)
 
     main(sys.argv[1])
