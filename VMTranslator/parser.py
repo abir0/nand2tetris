@@ -63,19 +63,27 @@ class Parser:
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print("Usage: .\Parser.py <filename>")
-        sys.exit(1)
+    try:
+        with open(sys.argv[1], "r") as infile:
+            data = infile.readlines()
+    except:
+        data = []
+        # Test cases
+        for i in ["push", "pop"]:
+            data.append(i + " local 1")
 
-    with open(sys.argv[1], "r") as infile:
-        data = infile.readlines()
+        for i in ["add", "sub", "neg", "and", "or", "not", "eq", "lt", "gt", "eq", "lt", "gt"]:
+            data.append(i)
+
+        data.append("label TEST_LABEL")
+        data.append("goto TEST_LABEL")
+        data.append("if-goto TEST_LABEL")
 
     P = Parser(data)
 
     count = 0
-    print("SL | TYPE | COMMAND")
-    print("-------------------")
+    print("Line --> Type")
+    print("-------------")
     while P.hasMoreCommads():
-        P.nextCommad()
-        count += 1
-        print("{} | {} | {}".format(count, re.sub("C_", "", P.commandType()), P.sourceLine()))
+        P.nextCommand()
+        print("{} --> {}".format(P.sourceLine(), re.sub("C_", "", P.commandType())))

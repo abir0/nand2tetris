@@ -1,4 +1,4 @@
-
+import sys
 
 class CodeWriter:
     """Take parsed VM code and write assembly code into new file."""
@@ -38,7 +38,7 @@ class CodeWriter:
     }
 
     def __init__(self, filename):
-        self.filename = filename.replace(".vm", "").replace("./", "").replace(".\\", "")
+        self.filename = filename.replace(".vm", "").replace(".\\", "")
         self.outfile = open(self.filename + ".asm", "w")
         self.outfile.write("// Translation of {} file\n".format(self.filename + ".asm"))
         self.jump_count = 0     # count the jump commands
@@ -112,4 +112,28 @@ class CodeWriter:
         self.outfile.close()    # close file
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
+
+    if len(sys.argv) < 2:
+        print("Usage: .\CodeWriter.py <filename>")
+        sys.exit(1)
+
+    C = CodeWriter(sys.argv[1])
+
+    # Test cases
+    for i in ["push", "pop"]:
+        for j in ["local", "argument", "this", "that", "temp", "pointer", "static"]:
+            for k in ["0", "1"]:
+                C.writeComment(i + " " + j + " " + k)
+                C.writePushPop(i, j, k)
+
+    for i in ["add", "sub", "neg", "and", "or", "not", "eq", "lt", "gt", "eq", "lt", "gt"]:
+        C.writeComment(i)
+        C.writeArithmatic(i)
+
+    C.writeComment("label TEST_LABEL")
+    C.writeLabel("TEST_LABEL")
+    C.writeComment("goto TEST_LABEL")
+    C.writeGoto("TEST_LABEL")
+    C.writeComment("if-goto TEST_LABEL")
+    C.writeIfgoto("TEST_LABEL")
