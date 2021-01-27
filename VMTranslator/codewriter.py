@@ -121,16 +121,10 @@ if __name__ == "__main__":
     C = CodeWriter(sys.argv[1])
 
     # Test cases
-    for i in ["push", "pop"]:
-        for j in ["local", "argument", "this", "that", "temp", "pointer", "static"]:
-            for k in ["0", "1"]:
-                C.writeComment(i + " " + j + " " + k)
-                C.writePushPop(i, j, k)
-
-    for i in ["add", "sub", "neg", "and", "or", "not", "eq", "lt", "gt", "eq", "lt", "gt"]:
-        C.writeComment(i)
-        C.writeArithmatic(i)
-
+    C.writeComment("push local 1")
+    C.writePushPop("push", "local", "1")
+    C.writeComment("eq")
+    C.writeArithmatic("eq")
     C.writeComment("label TEST_LABEL")
     C.writeLabel("TEST_LABEL")
     C.writeComment("goto TEST_LABEL")
