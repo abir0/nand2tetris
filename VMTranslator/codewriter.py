@@ -114,20 +114,20 @@ class CodeWriter:
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print("Usage: .\CodeWriter.py <filename>")
-        sys.exit(1)
-
-    C = CodeWriter(sys.argv[1])
+    C = CodeWriter("Test_cases")
 
     # Test cases
-    C.writeComment("push local 1")
-    C.writePushPop("push", "local", "1")
-    C.writeComment("eq")
-    C.writeArithmatic("eq")
     C.writeComment("label TEST_LABEL")
     C.writeLabel("TEST_LABEL")
-    C.writeComment("goto TEST_LABEL")
-    C.writeGoto("TEST_LABEL")
+    C.writeComment("push local 1")
+    C.writePushPop("push", "local", "1")
+    C.writeComment("push argument 0")
+    C.writePushPop("push", "argument", "0")
+    C.writeComment("add")
+    C.writeArithmatic("add")
     C.writeComment("if-goto TEST_LABEL")
     C.writeIfgoto("TEST_LABEL")
+    C.writeComment("pop static 1")
+    C.writePushPop("pop", "static", "1")
+    C.writeComment("goto TEST_LABEL")
+    C.writeGoto("TEST_LABEL")
