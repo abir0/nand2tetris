@@ -77,7 +77,7 @@ if __name__ == "__main__":
         P.nextCommand()
         commands[P.commandType()] = commands.get(P.commandType(), 0) + 1
 
-    for key, val in sorted(commands.items(), key= lambda x: x[1], reverse=True):
+    for key, val in sorted(commands.items(), key=lambda x: x[1], reverse=True):
         print("{}: {}".format(key, val))
 
     print("Total lines: {} ".format(sum(commands.values())))

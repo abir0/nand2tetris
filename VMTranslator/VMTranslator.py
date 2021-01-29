@@ -11,10 +11,10 @@ def main(filepath):
         if os.path.isfile(filepath):
             with open(filepath, "r") as infile:
                 data = infile.readlines()
-        else:
+        elif os.path.isdir(filepath):
             data = []
             for filename in os.listdir(filepath):
-                if not file.endswith(".vm"):
+                if not filename.endswith(".vm"):
                     continue
                 with open(os.path.join(filepath, filename), "r") as infile:
                     data += infile.readlines()
@@ -58,12 +58,15 @@ def main(filepath):
 
         elif P.commandType() == "C_FUNCTION":
             C.writeComment(P.sourceLine())
+            C.writeFunction(P.firstArgument(), P.secondArgument())
 
         elif P.commandType() == "C_RETURN":
             C.writeComment(P.sourceLine())
+            C.writeReturn()
 
         elif P.commandType() == "C_CALL":
             C.writeComment(P.sourceLine())
+            C.writeCall(P.firstArgument(), P.secondArgument())
 
     C.close()   # don't forget to close the file
 
