@@ -91,22 +91,17 @@ class CodeWriter:
 
     def writeLabel(self, label):
         self.outfile.write("({label})\n".format(label=label))
-        self.outfile.write("@SP\nM=M-1\n")
 
     def writeGoto(self, label):
-        self.outfile.write("@{label}\n".format(label=label))
-        self.outfile.write("0;JMP\n")
+        self.outfile.write("@{label}\n0;JMP\n".format(label=label))
 
     def writeIfgoto(self, label):
-        self.outfile.write("D=M\n")
-        self.outfile.write("@{label}\n".format(label=label))
-        self.outfile.write("D;JNE\n")
+        self.outfile.write("@SP\nAMD=M-1\n")
+        self.outfile.write("@{label}\nD;JNE\n".format(label=label))
 
     def writeFunction(self, functionName, nVars):
         self.outfile.write("({function_name})\n".format(function_name=functionName))
-        for num in range(int(nVars)):
-            push = CodeWriter.PUSHPOP_MAP["push constant"]
-            self.outfile.write(push.format(i="0"))
+        self.outfile.write("@SP\nA=M\nM=0\n@SP\nM=M+1\n"*int(nVars))
 
     def writeReturn(self):
         self.outfile.write("@LCL\nD=M\n@endFrame\nM=D\n@5\nAD=D-A\nD=M\n@returnAddr\nM=D\n")
@@ -118,7 +113,8 @@ class CodeWriter:
         self.outfile.write("@returnAddr\nA=M\n0;JMP\n")
 
     def writeCall(self, functionName, nArgs, line_count):
-        self.outfile.write("@{f}$return.{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(f=functionName, i=line_count))
+        self.outfile.write("@{function_name}$return.{i}\nD=A\n".format(function_name=functionName, i=line_count))
+        self.outfile.write("@SP\nAM=M+1\nA=A-1\nM=D\n")
         for i in ["LCL", "ARG", "THIS", "THAT"]:
             self.outfile.write("@{segment}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(segment=i))
         self.outfile.write("@SP\nD=M\n@{n_args}\nD=D-A\n@5\nD=D-A\n@ARG\nM=D\n".format(n_args=nArgs))
