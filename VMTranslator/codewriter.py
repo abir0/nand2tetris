@@ -1,4 +1,4 @@
-import sys, re
+import sys, os, re
 
 class CodeWriter:
     """Take parsed VM code and write assembly code into new file."""
@@ -19,9 +19,9 @@ class CodeWriter:
             "and" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M&D\n",
             "or" : "@SP\nAM=M-1\nD=M\nA=A-1\nM=M|D\n",
             "not" : "@SP\nA=M-1\nM=!M\n",
-            "eq" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_EQ{i}\nD;JNE\n@SP\nA=M-1\nM=-1\n(END_EQ{i})\n",
-            "gt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_GT{i}\nD;JLE\n@SP\nA=M-1\nM=-1\n(END_GT{i})\n",
-            "lt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_LT{i}\nD;JGE\n@SP\nA=M-1\nM=-1\n(END_LT{i})\n"
+            "eq" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_{i}\nD;JNE\n@SP\nA=M-1\nM=-1\n(END_{i})\n",
+            "gt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_{i}\nD;JLE\n@SP\nA=M-1\nM=-1\n(END_{i})\n",
+            "lt" : "@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D\nM=0\n@END_{i}\nD;JGE\n@SP\nA=M-1\nM=-1\n(END_{i})\n"
     }
 
     # Assembly mapping of memory segment commands
@@ -39,14 +39,16 @@ class CodeWriter:
 
 
     def __init__(self, filename):
-        self.filename = str(filename)
+        self.filename = filename
         self.filename = re.sub(r".vm$", "", self.filename)
         self.filename = re.sub(r"^\.\\", "", self.filename)
         self.filename = re.sub(r"\\$", "", self.filename)
-        self.outfile = open(self.filename + ".asm", "w")
+        self.filename = self.filename + ".asm"
+        if os.path.exists(self.filename):
+            os.remove(self.filename)
+        self.outfile = open(self.filename, "a")
         self.outfile.write("// Translation of {} file\n".format(self.filename + ".asm"))
         self.jump_count = 0     # count the jump commands
-        self.addr_count = 0
 
 
     def writeArithmatic(self, command):
@@ -101,34 +103,32 @@ class CodeWriter:
         self.outfile.write("D;JNE\n")
 
     def writeFunction(self, functionName, nVars):
-        self.outfile.write("({name})\n".format(name=functionName))
+        self.outfile.write("({function_name})\n".format(function_name=functionName))
         for num in range(int(nVars)):
             push = CodeWriter.PUSHPOP_MAP["push constant"]
             self.outfile.write(push.format(i="0"))
 
     def writeReturn(self):
-        self.outfile.write("@LCL\nD=M\n@5\nA=D-A\nD=M\n@R13\nM=D\n")
-        self.outfile.write("@SP\nA=M-1\nD=M\n@ARG\nA=M\nM=D\nD=A+1\n@SP\nM=D\n")
-        self.outfile.write("@LCL\nAM=M-1\nD=M\n@THAT\nM=D\n")
-        self.outfile.write("@LCL\nAM=M-1\nD=M\n@THIS\nM=D\n")
-        self.outfile.write("@LCL\nAM=M-1\nD=M\n@ARG\nM=D\n")
-        self.outfile.write("@LCL\nA=M-1\nD=M\n@LCL\nM=D\n")
-        self.outfile.write("@R13\nA=M\n0;JMP\n")
+        self.outfile.write("@LCL\nD=M\n@endFrame\nM=D\n@5\nAD=D-A\nD=M\n@returnAddr\nM=D\n")
+        self.outfile.write("@SP\nAM=M-1\nD=M\n@ARG\nA=M\nM=D\n@ARG\nD=M+1\n@SP\nM=D\n")
+        self.outfile.write("@endFrame\nA=M-1\nD=M\n@THAT\nM=D\n")
+        self.outfile.write("@2\nD=A\n@endFrame\nAD=M-D\nD=M\n@THIS\nM=D\n")
+        self.outfile.write("@3\nD=A\n@endFrame\nAD=M-D\nD=M\n@ARG\nM=D\n")
+        self.outfile.write("@4\nD=A\n@endFrame\nAD=M-D\nD=M\n@LCL\nM=D\n")
+        self.outfile.write("@returnAddr\nA=M\n0;JMP\n")
 
-    def writeCall(self, functionName, nArgs):
-        self.outfile.write("@SP\nD=M\n@R13\nM=D\n")
-        self.outfile.write("@{f}$return.{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(f=functionName, i=self.addr_count))
+    def writeCall(self, functionName, nArgs, line_count):
+        self.outfile.write("@{f}$return.{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(f=functionName, i=line_count))
         for i in ["LCL", "ARG", "THIS", "THAT"]:
             self.outfile.write("@{segment}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(segment=i))
-        self.outfile.write("\n@{args}\nD=A\n@5\nD=A+D\n@R13\nD=M-D\n@ARG\nM=D\n".format(args=nArgs))
+        self.outfile.write("@SP\nD=M\n@{n_args}\nD=D-A\n@5\nD=D-A\n@ARG\nM=D\n".format(n_args=nArgs))
         self.outfile.write("@SP\nD=M\n@LCL\nM=D\n")
-        self.outfile.write("@{name}\n0;JMP\n".format(name=functionName))
-        self.outfile.write("({f}$return.{i})\n".format(f=functionName, i=self.addr_count))
-        self.addr_count += 1
+        self.outfile.write("@{function_name}\n0;JMP\n".format(function_name=functionName))
+        self.outfile.write("({function_name}$return.{i})\n".format(function_name=functionName, i=line_count))
 
     def writeBootstrap(self):
         self.outfile.write("@256\nD=A\n@SP\nM=D\n")
-        self.writeCall("Sys.init", "0")
+        self.writeCall("Sys.init", "0", line_count=1)
 
     def writeComment(self, line):
         """Write VM commands as comment into file."""
@@ -136,24 +136,3 @@ class CodeWriter:
 
     def close(self):
         self.outfile.close()    # close file
-
-
-if __name__ == "__main__":
-
-    C = CodeWriter("Test_cases")
-
-    # Test cases
-    C.writeComment("label TEST_LABEL")
-    C.writeLabel("TEST_LABEL")
-    C.writeComment("push local 1")
-    C.writePushPop("push", "local", "1")
-    C.writeComment("push argument 0")
-    C.writePushPop("push", "argument", "0")
-    C.writeComment("add")
-    C.writeArithmatic("add")
-    C.writeComment("if-goto TEST_LABEL")
-    C.writeIfgoto("TEST_LABEL")
-    C.writeComment("pop static 1")
-    C.writePushPop("pop", "static", "1")
-    C.writeComment("goto TEST_LABEL")
-    C.writeGoto("TEST_LABEL")

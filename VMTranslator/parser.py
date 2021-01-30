@@ -28,6 +28,8 @@ class Parser:
     def __init__(self, data):
         # Remove empty line using len() function into filter
         self.lines = list(filter(len, data))
+        self.line = None
+        self.line_count = 0
 
     def hasMoreCommads(self):
         """Return True if there are more items in the list."""
@@ -40,6 +42,11 @@ class Parser:
     def sourceLine(self):
         """Return the current line."""
         return self.line.strip()
+
+    def lineCount(self):
+        if not self.commandType() == "NO_COMMAND":
+            self.line_count += 1
+            return self.line_count
 
     def commandType(self):
         """Return the command type of the current line."""

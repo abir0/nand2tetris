@@ -41,6 +41,7 @@ def writeFile(data, filepath, bootstrap_flag):
     while P.hasMoreCommads():
 
         P.nextCommand()  # put next line into current command
+        line_count = P.lineCount()
 
         if P.commandType() == "NO_COMMAND":
             C.writeComment(P.sourceLine())
@@ -79,7 +80,7 @@ def writeFile(data, filepath, bootstrap_flag):
 
         elif P.commandType() == "C_CALL":
             C.writeComment(P.sourceLine())
-            C.writeCall(P.firstArgument(), P.secondArgument())
+            C.writeCall(P.firstArgument(), P.secondArgument(), line_count)
 
     C.close()   # don't forget to close the file
 
