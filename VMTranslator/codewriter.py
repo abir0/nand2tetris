@@ -101,7 +101,7 @@ class CodeWriter:
         self.outfile.write("D;JNE\n")
 
     def writeFunction(self, functionName, nVars):
-        self.outfile.write("({file}.{function})\n".format(file=self.filename, function=functionName))
+        self.outfile.write("({name})\n".format(name=functionName))
         for num in range(int(nVars)):
             push = CodeWriter.PUSHPOP_MAP["push constant"]
             self.outfile.write(push.format(i="0"))
@@ -117,14 +117,18 @@ class CodeWriter:
 
     def writeCall(self, functionName, nArgs):
         self.outfile.write("@SP\nD=M\n@R13\nM=D\n")
-        self.outfile.write("@return.{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(i=self.addr_count))
+        self.outfile.write("@{f}$return.{i}\nD=A\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(f=functionName, i=self.addr_count))
         for i in ["LCL", "ARG", "THIS", "THAT"]:
             self.outfile.write("@{segment}\nD=M\n@SP\nAM=M+1\nA=A-1\nM=D\n".format(segment=i))
         self.outfile.write("\n@{args}\nD=A\n@5\nD=A+D\n@R13\nD=M-D\n@ARG\nM=D\n".format(args=nArgs))
         self.outfile.write("@SP\nD=M\n@LCL\nM=D\n")
-        self.outfile.write("@{file}.{function}\n".format(file=self.filename, function=functionName))
-        self.outfile.write("(return.{i})\n".format(i=self.addr_count))
+        self.outfile.write("@{name}\n0;JMP\n".format(name=functionName))
+        self.outfile.write("({f}$return.{i})\n".format(f=functionName, i=self.addr_count))
         self.addr_count += 1
+
+    def writeBootstrap(self):
+        self.outfile.write("@256\nD=A\n@SP\nM=D\n")
+        self.writeCall("Sys.init", "0")
 
     def writeComment(self, line):
         """Write VM commands as comment into file."""

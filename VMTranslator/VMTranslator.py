@@ -9,9 +9,11 @@ def main(filepath):
 
     try:
         if os.path.isfile(filepath):
+            dir_flag = False
             with open(filepath, "r") as infile:
                 data = infile.readlines()
         elif os.path.isdir(filepath):
+            dir_flag = True
             data = []
             for filename in os.listdir(filepath):
                 if not filename.endswith(".vm"):
@@ -24,6 +26,10 @@ def main(filepath):
 
     P = Parser(data)
     C = CodeWriter(filepath)    # open the file into CodeWriter
+
+    if dir_flag:
+        C.writeComment("call Sys.init 0")
+        C.writeBootstrap()
 
     while P.hasMoreCommads():
 
