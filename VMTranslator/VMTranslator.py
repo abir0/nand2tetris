@@ -7,27 +7,34 @@ from CodeWriter import CodeWriter
 
 def main(filepath):
 
-    try:
-        if os.path.isfile(filepath):
-            dir_flag = False
-            with open(filepath, "r") as infile:
-                data = infile.readlines()
-        elif os.path.isdir(filepath):
-            dir_flag = True
-            data = []
-            for filename in os.listdir(filepath):
-                if not filename.endswith(".vm"):
-                    continue
-                with open(os.path.join(filepath, filename), "r") as infile:
-                    data += infile.readlines()
-    except FileNotFoundError:
+    if not os.path.exists(filepath):
         print("No such file: \'{}\'\nPlease enter correct filepath".format(filepath))
         sys.exit(1)
+
+    if os.path.isfile(filepath):
+        bootstrap_flag = False
+        with open(filepath, "r") as infile:
+            data = infile.readlines()
+
+        writeFile(data, filepath, bootstrap_flag)
+
+    elif os.path.isdir(filepath):
+        bootstrap_flag = True
+        for filename in os.listdir(filepath):
+            if not filename.endswith(".vm"):
+                continue
+            with open(os.path.join(filepath, filename), "r") as infile:
+                data = infile.readlines()
+
+            writeFile(data, filepath, bootstrap_flag)
+
+
+def writeFile(data, filepath, bootstrap_flag):
 
     P = Parser(data)
     C = CodeWriter(filepath)    # open the file into CodeWriter
 
-    if dir_flag:
+    if bootstrap_flag:
         C.writeComment("call Sys.init 0")
         C.writeBootstrap()
 
