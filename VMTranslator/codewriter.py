@@ -38,10 +38,11 @@ class CodeWriter:
     }
 
 
-    def __init__(self, filename):
+    def __init__(self, filename, basename):
         self.filename = filename
-        self.outfile = open(self.filename + ".asm", "a")
-        self.outfile.write("// Translation of {} file\n".format(self.filename + ".asm"))
+        self.basename = basename
+        self.outfile = open(self.filename, "a")
+        self.outfile.write("// Translation of {} file\n".format(self.filename))
         self.jump_count = 0     # count the jump commands
         self.call_count = 0
 
@@ -83,7 +84,7 @@ class CodeWriter:
 
         elif segment == "static":
             code = CodeWriter.PUSHPOP_MAP[command + " " + segment]
-            code = code.format(filename=self.filename, i=str(index))
+            code = code.format(filename=self.basename, i=str(index))
             self.write(code)
 
     def writeLabel(self, label):

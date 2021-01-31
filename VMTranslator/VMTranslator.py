@@ -7,42 +7,50 @@ from CodeWriter import CodeWriter
 
 def main(filepath):
 
-    if not os.path.exists(filepath):
-        print("No such file: \'{}\'\nPlease enter correct filepath".format(filepath))
-        sys.exit(1)
+    out_filename, filenames = parseFilePath(filepath)
 
-    filepath = re.sub(r"\\$", "", filepath)
-    out_filename = os.path.basename(filepath)
-    out_filename = out_filename.replace(".vm", "")
-
-    if os.path.exists(out_filename + ".asm"):
-        os.remove(out_filename + ".asm")
+    if os.path.exists(out_filename):
+        os.remove(out_filename)
 
     if os.path.isfile(filepath):
-
         with open(filepath, "r") as infile:
             data = infile.readlines()
 
-        P = Parser(data)
-        C = CodeWriter(out_filename)
+        parser = Parser(data)
+        code_writer = CodeWriter(out_filename, filenames[0])
 
-        writeFile(parser=P, code_writer=C)
+        writeFile(parser, code_writer)
 
     elif os.path.isdir(filepath):
-
-        for filename in os.listdir(filepath):
-            if not filename.endswith(".vm"):
-                continue
-            with open(os.path.join(filepath, filename), "r") as infile:
+        for filename in filenames:
+            full_path = os.path.join(filepath, filename + ".vm")
+            with open(full_path, "r") as infile:
                 data = infile.readlines()
 
-            P = Parser(data)
-            C = CodeWriter(out_filename)
+            parser = Parser(data)
+            code_writer = CodeWriter(out_filename, filename)
 
-            C.writeComment("call Sys.init 0")
-            C.writeInit()
+            if filenames[0] == filename:
+                code_writer.writeComment("call Sys.init 0")
+                code_writer.writeInit()
+            writeFile(parser, code_writer)
 
-            writeFile(parser=P, code_writer=C)
+def parseFilePath(path):
+
+    clean_path = path.replace(".vm", "")
+    clean_path = re.sub(r"\\$", "", clean_path)
+
+    output_filename = clean_path + ".asm"
+
+    try:
+        filenames = [filename.replace(".vm","") for filename in os.listdir(path) if filename.endswith(".vm")]
+    except NotADirectoryError:
+        filenames = [os.path.basename(clean_path)]
+    except FileNotFoundError:
+        print("No such file: \'{}\'\nPlease enter correct filepath".format(path))
+        sys.exit(1)
+
+    return output_filename, filenames
 
 
 def writeFile(parser, code_writer):
