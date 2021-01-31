@@ -11,78 +11,86 @@ def main(filepath):
         print("No such file: \'{}\'\nPlease enter correct filepath".format(filepath))
         sys.exit(1)
 
+    filepath = re.sub(r"\\$", "", filepath)
+    out_filename = os.path.basename(filepath)
+    out_filename = out_filename.replace(".vm", "")
+
+    if os.path.exists(out_filename + ".asm"):
+        os.remove(out_filename + ".asm")
+
     if os.path.isfile(filepath):
-        bootstrap_flag = False
+
         with open(filepath, "r") as infile:
             data = infile.readlines()
 
-        writeFile(data, filepath, bootstrap_flag)
+        P = Parser(data)
+        C = CodeWriter(out_filename)
+
+        writeFile(parser=P, code_writer=C)
 
     elif os.path.isdir(filepath):
-        bootstrap_flag = True
+
         for filename in os.listdir(filepath):
             if not filename.endswith(".vm"):
                 continue
             with open(os.path.join(filepath, filename), "r") as infile:
                 data = infile.readlines()
 
-            writeFile(data, filepath, bootstrap_flag)
+            P = Parser(data)
+            C = CodeWriter(out_filename)
+
+            C.writeComment("call Sys.init 0")
+            C.writeInit()
+
+            writeFile(parser=P, code_writer=C)
 
 
-def writeFile(data, filepath, bootstrap_flag):
+def writeFile(parser, code_writer):
 
-    P = Parser(data)
-    C = CodeWriter(filepath)    # open the file into CodeWriter
+    while parser.hasMoreCommads():
 
-    if bootstrap_flag:
-        C.writeComment("call Sys.init 0")
-        C.writeBootstrap()
+        parser.nextCommand()  # put next line into current command
 
-    while P.hasMoreCommads():
+        if parser.commandType() == "NO_COMMAND":
+            code_writer.writeComment(parser.sourceLine())
 
-        P.nextCommand()  # put next line into current command
-        line_count = P.lineCount()
+        elif parser.commandType() == "C_PUSH":   # write push commands
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writePushPop(parser.getCommand(), parser.firstArgument(), parser.secondArgument())
 
-        if P.commandType() == "NO_COMMAND":
-            C.writeComment(P.sourceLine())
+        elif parser.commandType() == "C_POP":    # write pop commands
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writePushPop(parser.getCommand(), parser.firstArgument(), parser.secondArgument())
 
-        elif P.commandType() == "C_PUSH":   # write push commands
-            C.writeComment(P.sourceLine())
-            C.writePushPop(P.getCommand(), P.firstArgument(), P.secondArgument())
+        elif parser.commandType() == "C_ARITHMATIC":   # write arithmatic commands
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeArithmatic(parser.getCommand())
 
-        elif P.commandType() == "C_POP":    # write pop commands
-            C.writeComment(P.sourceLine())
-            C.writePushPop(P.getCommand(), P.firstArgument(), P.secondArgument())
+        elif parser.commandType() == "C_LABEL":
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeLabel(parser.firstArgument())
 
-        elif P.commandType() == "C_ARITHMATIC":   # write arithmatic commands
-            C.writeComment(P.sourceLine())
-            C.writeArithmatic(P.getCommand())
+        elif parser.commandType() == "C_GOTO":
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeGoto(parser.firstArgument())
 
-        elif P.commandType() == "C_LABEL":
-            C.writeComment(P.sourceLine())
-            C.writeLabel(P.firstArgument())
+        elif parser.commandType() == "C_IFGOTO":
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeIfgoto(parser.firstArgument())
 
-        elif P.commandType() == "C_GOTO":
-            C.writeComment(P.sourceLine())
-            C.writeGoto(P.firstArgument())
+        elif parser.commandType() == "C_FUNCTION":
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeFunction(parser.firstArgument(), parser.secondArgument())
 
-        elif P.commandType() == "C_IFGOTO":
-            C.writeComment(P.sourceLine())
-            C.writeIfgoto(P.firstArgument())
+        elif parser.commandType() == "C_RETURN":
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeReturn()
 
-        elif P.commandType() == "C_FUNCTION":
-            C.writeComment(P.sourceLine())
-            C.writeFunction(P.firstArgument(), P.secondArgument())
+        elif parser.commandType() == "C_CALL":
+            code_writer.writeComment(parser.sourceLine())
+            code_writer.writeCall(parser.firstArgument(), parser.secondArgument())
 
-        elif P.commandType() == "C_RETURN":
-            C.writeComment(P.sourceLine())
-            C.writeReturn()
-
-        elif P.commandType() == "C_CALL":
-            C.writeComment(P.sourceLine())
-            C.writeCall(P.firstArgument(), P.secondArgument(), line_count)
-
-    C.close()   # don't forget to close the file
+    code_writer.close()   # don't forget to close the file
 
 if __name__ == "__main__":
 
