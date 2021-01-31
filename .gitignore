@@ -4,10 +4,11 @@ __pycache__/
 *$py.class
 
 # Project oriented files
+*.tst
+*.out
+*.cmp
 *.hdl
 *.hack
 *.asm
 *.vm
-*.cmp
-*.tst
-*.out
+*.hack
