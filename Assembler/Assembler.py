@@ -114,7 +114,7 @@ def main(filename):
         print("No such file: \'{}\'\nPlease enter correct filename".format(filename))
         sys.exit(1)
 
-    from instructions import comp, dest, jump
+    from Instructions import comp, dest, jump
 
     table = map_table(data)
 
@@ -122,7 +122,7 @@ def main(filename):
 
     for line in data:
         parsed, flag = parser(line)
-        
+
         if flag == "A_INSTRUCTION":
             dec = table[parsed]
             bin = dec2bin(dec)

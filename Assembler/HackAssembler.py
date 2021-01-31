@@ -1,3 +1,4 @@
+# Version 1
 #!/usr/bin/env python3
 
 import sys
@@ -184,7 +185,7 @@ def main(filename):
             bin = '111' + comp[parsed[0]] + dest[parsed[1]] + jump[parsed[2]]
         else:
             continue
-            
+
         machine_code.append(bin)
 
     if not filename.endswith(".asm"):
