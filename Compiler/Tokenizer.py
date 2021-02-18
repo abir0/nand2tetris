@@ -5,15 +5,19 @@ import re
 
 
 class Tokenizer:
+    """Jack Tokenizer class."""
 
-    KEYWORDS = {"class", ""}
-    SYMBOLS = {"{", ""}
+    KEYWORDS = {"class", "constructor", "function", "method", "field", "static", "var", "int", "char",
+                "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"}
+    SYMBOLS = {"{", "}", "(", ")", "[", "]", ".", ",", ";",
+               "+", "-", "*", "/", "~", "&", "|", "<", ">", "="}
 
     def __init__(self, filepath):
         self.filenames = Tokenizer.get_filenames(filepath)
 
     @staticmethod
     def get_filenames(filepath):
+        """Return a list of filenames from filepath."""
         filenames = []
         if not exists(filepath):
             raise FileNotFoundError
@@ -24,6 +28,7 @@ class Tokenizer:
         return filenames
 
     def read_files(self):
+        """Read each file and get the data."""
         self.files = {}
         for filename in self.filenames:
             with open(filename, "r") as infile:
@@ -32,6 +37,7 @@ class Tokenizer:
 
     @staticmethod
     def process_lines(file_data):
+        """Return the list of words from the file data."""
         comment_pattern1 = r"\/\/.*"
         comment_pattern2 = r"\/\*.*?\*\/"
         file_data = re.sub(comment_pattern1, "", file_data)
@@ -39,9 +45,17 @@ class Tokenizer:
         return file_data.split()
 
     def tokenize(self):
-        pass
+        """Generate tokens from the data."""
+        decimal_pattern = r"[0-9]{1,5}"
+        string_pattern = r"\".*?\""
+        identifier_pattern = r"[a-zA-Z_][a-zA-Z0-9_]*"
+
+        for file in self.files:
+            for word in file:
+                pass
 
     def write_files(self):
+        """Write the tokens into each files."""
         for filename in self.filenames:
             out_filename = filename.replace(".jack", ".txt")
             with open(out_filename, "w") as outfile:
