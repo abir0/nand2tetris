@@ -14,5 +14,11 @@ class CompilationEngine:
     def compileLetStatement():
         pass
 
+    def compileDoStatement():
+        pass
+
+    def compileReturnStatement():
+        pass
+
     def compileTerm():
         pass
