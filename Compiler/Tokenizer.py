@@ -12,33 +12,21 @@ class Tokenizer:
     SYMBOLS = {"{", "}", "(", ")", "[", "]", ".", ",", ";",
                "+", "-", "*", "/", "~", "&", "|", "<", ">", "="}
 
-    def __init__(self, filepath):
-        self.filenames = Tokenizer.get_filenames(filepath)
+    def __init__(self, filename):
+        self.filename = filename
 
-    @staticmethod
-    def get_filenames(filepath):
-        """Return a list of filenames from filepath."""
-        filenames = []
-        if not exists(filepath):
-            raise FileNotFoundError
-        elif isfile(filepath):
-            filenames.append(filepath)
-        elif isdir(filepath):
-            filenames = [join(path, file) for path, _, file in walk(filepath)]
-        return filenames
-
-    def read_files(self):
+    def read_file(self):
         """Read each file and get the data."""
-        self.files = []
-        for filename in self.filenames:
-            with open(filename, "r") as infile:
-                file_data = str(infile.read())
-                self.files.append(Tokenizer.process_lines(file_data))
 
-    @staticmethod
+        with open(self.filename, "r") as infile:
+            file_data = str(infile.read())
+            self.file = Tokenizer.process_lines(file_data)
+
+    @ staticmethod
     def process_lines(file_data):
         """Return the list of words from the file data."""
-        comment_pattern1 = r"\/\/.*"
+
+        comment_pattern1 = r"\/\/.*?(\r\n|\r|\n)"
         comment_pattern2 = r"\/\*.*?\*\/"
         file_data = re.sub(comment_pattern1, "", file_data)
         file_data = re.sub(comment_pattern2, "", file_data)
@@ -46,46 +34,41 @@ class Tokenizer:
 
     def tokenize(self):
         """Generate tokens from the data."""
-        #symbol_pattern = r"(.*?)([\{\}\(\)\[\]\.\,\;\+\-\*\/\~\&\|\<\>\=])(.*?)"
-        #decimal_pattern = r"\b[0-9]{1,5}\b"
-        #string_pattern = r"\".*?\""
-        #identifier_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
 
-        self.file_tokens = []
-        for file in self.files:
-            tokens = []
-            token = ""
-            str_flag = False
-            for c in str(file):
-                if c in Tokenizer.SYMBOLS:
-                    tokens.append(token.strip())
-                    tokens.append(c)
-                    token = ""
-                elif c in ["\""]:
-                    str_flag = not str_flag
-                    tokens.append(token)
-                    token = ""
-                elif c in [" "]:
-                    if str_flag:
-                        token += c
-                        continue
-                    tokens.append(token.strip())
-                    token = ""
-                else:
+        tokens = []
+        token = ""
+        str_flag = False
+        for c in str(self.file):
+            if c in Tokenizer.SYMBOLS:
+                tokens.append(token.strip())
+                tokens.append(c)
+                token = ""
+            elif c in ["\""]:
+                str_flag = not str_flag
+                tokens.append(token)
+                token = ""
+            elif c in [" "]:
+                if str_flag:
                     token += c
-            self.file_tokens.append(list(filter(len, tokens)))
+                    continue
+                tokens.append(token.strip())
+                token = ""
+            else:
+                token += c
+        self.tokens = list(filter(len, tokens))
+        return self.tokens
 
-    def write_files(self):
+    def write_file(self):
         """Write the tokens into each files."""
-        for i, filename in enumerate(self.filenames):
-            out_filename = filename.replace(".jack", ".txt")
-            with open(out_filename, "w") as outfile:
-                outfile.write("\n".join(self.file_tokens[i]))
+
+        out_filename = self.filename.replace(".jack", ".txt")
+        with open(out_filename, "w") as outfile:
+            outfile.write("\n".join(self.tokens))
 
 
 if __name__ == "__main__":
 
     T = Tokenizer(sys.argv[1])
-    T.read_files()
+    T.read_file()
     T.tokenize()
-    T.write_files()
+    T.write_file()
