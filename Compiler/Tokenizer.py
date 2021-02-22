@@ -28,7 +28,7 @@ class Tokenizer:
 
     @staticmethod
     def remove_comments(file_data):
-        """Return the list of words from the data."""
+        """Remove the comments from the data."""
 
         comment_pattern1 = r"\/\/.*?(\r\n|\r|\n)"
         comment_pattern2 = r"\/\*.*?\*\/"
@@ -68,13 +68,15 @@ class Tokenizer:
         self.tokens = list(filter(len, self.tokens))
 
     def hasMoreTokens(self):
+        """Return whether there are more tokens or not."""
         return bool(self.tokens)
 
     def advance(self):
+        """Take one token from the tokens."""
         self.token = self.tokens.pop(0)
 
     def tokenType(self):
-        """Generate xml labels from the tokens."""
+        """Return the token type in string."""
 
         integer_pattern = r"[0-9]{1,5}"
         string_pattern = r"\".*?\""
@@ -92,7 +94,7 @@ class Tokenizer:
             return "INT_CONST"
 
     def writeTokens(self):
-        """Write the tokens into each files."""
+        """Write the tokens in xml."""
 
         char_entity = {"{": "&lcub;", "}": "&rcub;", "(": "&lpar;", ")": "&rpar;",
                        "[": "&lsqb", "]": "&rsqb;", ".": "&period;", ",": "&comma;", ";": "&semi;",
