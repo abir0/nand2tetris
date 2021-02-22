@@ -2,6 +2,9 @@
 
 class CompilationEngine:
 
+    def __init__(self, tokens):
+        self.tokens = tokens
+
     def compileStatements():
         pass
 

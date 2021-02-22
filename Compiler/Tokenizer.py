@@ -14,6 +14,8 @@ class Tokenizer:
 
     def __init__(self, filename):
         self.filename = filename
+        self.tokens = list()
+        self.token = str()
 
     @staticmethod
     def read_file(filename):
@@ -36,71 +38,91 @@ class Tokenizer:
 
         return file_data
 
-    @staticmethod
-    def get_tokens(file_data):
-        """Return the tokens from the data."""
-
-        tokens = []
-        token = ""
-        str_flag = False
-        for c in str(file_data):
-            if c in Tokenizer.SYMBOLS:
-                tokens.append(token.strip())
-                tokens.append(c)
-                token = ""
-            elif c in ["\""]:
-                str_flag = not str_flag
-                tokens.append(c + tokenc + c)
-                token = ""
-            elif c in [" "]:
-                if str_flag:
-                    token += c
-                    continue
-                tokens.append(token.strip())
-                token = ""
-            else:
-                token += c
-        tokens = list(filter(len, tokens))
-        return tokens
-
     def tokenize(self):
-        """Generate xml labels from the tokens."""
-
-        integer_pattern = r"\b[0-9]{1,5}\b"
-        string_pattern = r"\".*?\""
-        identifier_pattern = r"\b[A-Za-z_][A-Za-z0-9_]*\b"
+        """Return the tokens from the data."""
 
         file_data = Tokenizer.read_file(self.filename)
         file_data = Tokenizer.remove_comments(file_data)
-        tokens = Tokenizer.get_tokens(file_data)
 
-        for i, token in enumerate(tokens):
-            if token in Tokenizer.KEYWORDS:
-                tokens[i] = "<keyword> " + token + " </keyword>"
-            elif token in Tokenizer.SYMBOLS:
-                tokens[i] = "<symbol> " + token + " </symbol>"
-            elif re.search(identifier_pattern, token) is not None:
-                tokens[i] = "<identifier> " + token + " </identifier>"
-            elif re.search(integer_pattern, token) is not None:
-                tokens[i] = "<integerConstant> " + \
-                    token + " </integerConstant>"
-            elif re.search(string_pattern, token) is not None:
-                tokens[i] = "<stringConstant> " + token + " </stringConstant>"
+        token = ""
+        str_flag = False
+        for char in str(file_data):
+            if char in Tokenizer.SYMBOLS:
+                self.tokens.append(token.strip())
+                self.tokens.append(char)
+                token = ""
+            elif char == "\"":
+                str_flag = not str_flag
+                if token == "":
+                    continue
+                self.tokens.append("\"" + token + "\"")
+                token = ""
+            elif char == " ":
+                if str_flag:
+                    token += char
+                    continue
+                self.tokens.append(token.strip())
+                token = ""
+            else:
+                token += char
+        self.tokens = list(filter(len, self.tokens))
 
-        return tokens
+    def hasMoreTokens(self):
+        return bool(self.tokens)
 
-    def write(self, tokens):
+    def advance(self):
+        self.token = self.tokens.pop(0)
+
+    def tokenType(self):
+        """Generate xml labels from the tokens."""
+
+        integer_pattern = r"[0-9]{1,5}"
+        string_pattern = r"\".*?\""
+        identifier_pattern = r"[A-Za-z_][A-Za-z0-9_]*"
+
+        if self.token in Tokenizer.KEYWORDS:
+            return "KEYWORD"
+        elif self.token in Tokenizer.SYMBOLS:
+            return "SYMBOL"
+        elif re.search(string_pattern, self.token) is not None:
+            return "STR_CONST"
+        elif re.search(identifier_pattern, self.token) is not None:
+            return "IDENTIFIER"
+        elif re.search(integer_pattern, self.token) is not None:
+            return "INT_CONST"
+
+    def writeTokens(self):
         """Write the tokens into each files."""
+
+        char_entity = {"{": "&lcub;", "}": "&rcub;", "(": "&lpar;", ")": "&rpar;",
+                       "[": "&lsqb", "]": "&rsqb;", ".": "&period;", ",": "&comma;", ";": "&semi;",
+                       "+": "&plus;", "-": "&minus;", "*": "&ast;", "/": "&sol;", "~": "&sim;",
+                       "&": "&amp;", "|": "&vert;", "<": "&lt;", ">": "&gt;", "=": "&equals;"}
 
         out_filename = self.filename.replace(".jack", ".xml")
         with open(out_filename, "w") as outfile:
             outfile.write("<tokens>\n")
-            outfile.write("\n".join(tokens))
-            outfile.write("\n</tokens>")
+            while self.hasMoreTokens():
+                self.advance()
+                if self.tokenType() == "KEYWORD":
+                    outfile.write("<keyword> " + self.token + " </keyword>\n")
+                elif self.tokenType() == "SYMBOL":
+                    outfile.write(
+                        "<symbol> " + self.token + " </symbol>\n")
+                elif self.tokenType() == "IDENTIFIER":
+                    outfile.write("<identifier> " +
+                                  self.token + " </identifier>\n")
+                elif self.tokenType() == "INT_CONST":
+                    outfile.write("<integerConstant> " +
+                                  self.token + " </integerConstant>\n")
+                elif self.tokenType() == "STR_CONST":
+                    outfile.write("<stringConstant> " +
+                                  self.token[1:-1] + " </stringConstant>\n")
+            outfile.write("</tokens>")
 
 
 if __name__ == "__main__":
 
     T = Tokenizer(sys.argv[1])
-    tokens = T.tokenize()
-    T.write(tokens)
+    T.tokenize()
+    T.writeTokens()

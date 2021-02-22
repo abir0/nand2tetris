@@ -8,8 +8,11 @@ def main(path):
 
     for filename in filenames:
         T = Tokenizer(filename)
-        T.read_files()
-        T.tokenize()
+        tokens = T.tokenize()
+        P = CompilationEngine(tokens)
+        while P.hasMoreTokens():
+            P.advance()
+
         T.write_files()
 
 
