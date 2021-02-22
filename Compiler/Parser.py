@@ -5,23 +5,47 @@ class CompilationEngine:
     def __init__(self, tokens):
         self.tokens = tokens
 
-    def compileStatements():
+    def compileClass(self):
         pass
 
-    def compileIfStatement():
+    def compileClassVarDec(self):
         pass
 
-    def compileWhileStatement():
+    def compileSubroutineDec(self):
         pass
 
-    def compileLetStatement():
+    def compileParameterList(self):
         pass
 
-    def compileDoStatement():
+    def compileSubroutineBody(self):
         pass
 
-    def compileReturnStatement():
+    def compileVarDec(self):
         pass
 
-    def compileTerm():
+    def compileStatements(self):
+        pass
+
+    def compileLet(self):
+        pass
+
+    def compileDo(self):
+        pass
+
+    def compileIf(self):
+        pass
+
+    def compileWhile(self):
+        pass
+
+    def compileReturn(self):
+        pass
+
+    def compileExpression(self):
+        pass
+
+    def compileTerm(self):
+        pass
+
+    def compileExpressionList(self):
         pass
