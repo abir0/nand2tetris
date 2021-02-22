@@ -73,7 +73,11 @@ class Tokenizer:
 
     def advance(self):
         """Take one token from the tokens."""
+        if not self.hasMoreTokens():
+            print("JackAnalyzer has finished")
+            return
         self.token = self.tokens.pop(0)
+        return self.token
 
     def tokenType(self):
         """Return the token type in string."""
@@ -133,23 +137,18 @@ class Tokenizer:
 
                 elif self.tokenType() == "IDENTIFIER":
                     if flag:
-                        print(self.tokenType().ljust(
-                            10), "|", self.identifier())
-                    outfile.write("<identifier> " +
-                                  self.token + " </identifier>\n")
+                        print(self.tokenType().ljust(10), "|", self.identifier())
+                    outfile.write("<identifier> " + self.token + " </identifier>\n")
 
                 elif self.tokenType() == "INT_CONST":
                     if flag:
                         print(self.tokenType().ljust(10), "|", self.intVal())
-                    outfile.write("<integerConstant> " +
-                                  self.token + " </integerConstant>\n")
+                    outfile.write("<integerConstant> " + self.token + " </integerConstant>\n")
 
                 elif self.tokenType() == "STR_CONST":
                     if flag:
-                        print(self.tokenType().ljust(
-                            10), "|", self.stringVal())
-                    outfile.write("<stringConstant> " +
-                                  self.token[1:-1] + " </stringConstant>\n")
+                        print(self.tokenType().ljust(10), "|", self.stringVal())
+                    outfile.write("<stringConstant> " + self.token[1:-1] + " </stringConstant>\n")
             outfile.write("</tokens>")
 
 
