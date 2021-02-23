@@ -3,6 +3,12 @@ from Tokenizer import Tokenizer
 
 class CompilationEngine:
 
+    BINARY_OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
+    UNARY_OP = ["-", "~"]
+    KEYWORD_CONST = ["true", "false", "null", "this"]
+    SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + BINARY_OP + KEYWORD_CONST)
+
+
     def __init__(self, filename):
         self.in_filename = filename
         self.out_filename = filename.replace(".jack", ".xml")
@@ -273,13 +279,88 @@ class CompilationEngine:
                 self.write("</returnStatement>\n")
 
     def compileExpression(self):
-        self.Tokens.advance()
+        self.write("<Expression>\n")
+        if self.Tokens.getToken() not in CompilationEngine.SET:
+            self.compileTerm()
+            while self.Tokens.getToken() not in CompilationEngine.SET:
+                if self.Tokens.symbol() in CompilationEngine.BINARY_OP:
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.getToken() not in CompilationEngine.SET:
+                        self.compileTerm()
+                        self.write("</Expression>\n")
 
     def compileTerm(self):
-        pass
+        self.write("<Term>\n")
+        if self.Tokens.getToken() not in CompilationEngine.SET:
+            if self.Tokens.tokenType() == "INT_CONST":
+                self.write("<integerConstant> " + self.Tokens.getToken() + " </integerConstant>\n")
+                self.Tokens.advance()
+            elif self.Tokens.tokenType() == "STR_CONST":
+                self.write("<stringConstant> " + self.Tokens.getToken() + " </stringConstant>\n")
+                self.Tokens.advance()
+            elif self.Tokens.keyWord() in CompilationEngine.KEYWORD_CONST:
+                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                self.Tokens.advance()
+            elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
+                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.Tokens.advance()
+                if self.Tokens.getToken() not in CompilationEngine.SET:
+                    self.compileTerm()
+            elif self.Tokens.tokenType() == "IDENTIFIER":
+                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                self.Tokens.advance()
+                if self.Tokens.symbol() in ["[", "("]:
+                    if self.Tokens.symbol() == "[":
+                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                        self.Tokens.advance()
+                        if self.Tokens.getToken() not in CompilationEngine.SET:
+                            self.compileExpression()
+                            if self.Tokens.symbol() == "]":
+                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                self.Tokens.advance()
+                    elif self.Tokens.symbol() == "(":
+                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                        self.Tokens.advance()
+                        if self.Tokens.getToken() not in CompilationEngine.SET:
+                            self.compileExpressionList()
+                            if self.Tokens.symbol() == ")":
+                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                self.Tokens.advance()
+                elif self.Tokens.symbol() == ".":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.tokenType() == "IDENTIFIER":
+                        self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                        self.Tokens.advance()
+                        if self.Tokens.symbol() == "(":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                            if self.Tokens.getToken() not in CompilationEngine.SET:
+                                self.compileExpressionList()
+                                if self.Tokens.symbol() == ")":
+                                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                    self.Tokens.advance()
+            elif self.Tokens.symbol() == "(":
+                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.Tokens.advance()
+                if self.Tokens.getToken() not in CompilationEngine.SET:
+                    self.compileExpression()
+                    if self.Tokens.symbol() == ")":
+                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                        self.Tokens.advance()
+            self.write("</Term>\n")
 
     def compileExpressionList(self):
-        pass
+        self.write("<ExpressionList>\n")
+        if True:
+            self.compileExpression()
+            while self.Tokens.symbol() == ",":
+                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.Tokens.advance()
+                if True:
+                    self.compileExpression()
+        self.write("</ExpressionList>\n")
 
 
 if __name__ == "__main__":
