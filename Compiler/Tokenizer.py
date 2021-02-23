@@ -66,6 +66,7 @@ class Tokenizer:
             else:
                 token += char
         self.tokens = list(filter(len, self.tokens))
+        print(self.tokens)
 
     def hasMoreTokens(self):
         """Return whether there are more tokens or not."""
@@ -77,6 +78,8 @@ class Tokenizer:
             print("JackAnalyzer has finished")
             return
         self.token = self.tokens.pop(0)
+
+    def getToken(self):
         return self.token
 
     def tokenType(self):
@@ -98,19 +101,24 @@ class Tokenizer:
             return "INT_CONST"
 
     def keyWord(self):
-        return self.token.upper()
+        if self.tokenType() == "KEYWORD":
+            return self.token.upper()
 
     def symbol(self):
-        return self.token
+        if self.tokenType() == "SYMBOL":
+            return self.token
 
     def identifier(self):
-        return str(self.token)
+        if self.tokenType() == "IDENTIFIER":
+            return str(self.token)
 
     def intVal(self):
-        return int(self.token)
+        if self.tokenType() == "INT_CONST":
+            return int(self.token)
 
     def stringVal(self):
-        return str(self.token[1:-1])
+        if self.tokenType() == "STR_CONST":
+            return str(self.token[1:-1])
 
     def writeTokens(self, flag=False):
         """Write the tokens in xml."""
