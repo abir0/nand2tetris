@@ -43,7 +43,10 @@ class CompilationEngine:
         if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            self.compileType()
+            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            elif self.Tokens.tokenType() == "IDENTIFIER":
+                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -56,8 +59,8 @@ class CompilationEngine:
                         self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                    self.write("</classVarDec>\n")
                     self.Tokens.advance()
+                    self.write("</classVarDec>\n")
 
     def compileSubroutineDec(self):
         self.write("<SubroutineDec>\n")
@@ -81,9 +84,10 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
-                        self.compileSubroutineBody()
-                        self.write("</SubroutineDec>\n")
-                        self.Tokens.advance()
+                        if self.Tokens.symbol() == "{":
+                            self.compileSubroutineBody()
+                            self.Tokens.advance()
+                            self.write("</SubroutineDec>\n")
 
     def compileParameterList(self):
         self.write("<ParameterList>\n")
@@ -98,12 +102,15 @@ class CompilationEngine:
             while self.Tokens.symbol() == ",":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
-                self.compileType()
+                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                    self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                elif self.Tokens.tokenType() == "IDENTIFIER":
+                    self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                 self.Tokens.advance()
                 if self.Tokens.tokenType() == "IDENTIFIER":
                     self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
-                    self.write("</ParameterList>\n")
                     self.Tokens.advance()
+                    self.write("</ParameterList>\n")
 
     def compileSubroutineBody(self):
         self.write("<SubroutineBody>\n")
@@ -116,15 +123,18 @@ class CompilationEngine:
                 self.compileStatements()
             if self.Tokens.symbol() == "}":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                self.write("</SubroutineBody>\n")
                 self.Tokens.advance()
+                self.write("</SubroutineBody>\n")
 
     def compileVarDec(self):
         self.write("<VarDec>\n")
         if self.Tokens.keyWord() == "VAR":
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            self.compileType()
+            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            elif self.Tokens.tokenType() == "IDENTIFIER":
+                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -137,35 +147,133 @@ class CompilationEngine:
                         self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                    self.write("</VarDec>\n")
                     self.Tokens.advance()
-
-    def compileType(self):
-        if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
-        elif self.Tokens.tokenType() == "IDENTIFIER":
-            self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                    self.write("</VarDec>\n")
 
     def compileStatements(self):
-        pass
+        self.write("<Statements>\n")
+        while self.Tokens.keyWord() in ["LET", "DO", "IF", "WHILE", "RETURN"]:
+            if self.Tokens.keyWord() == "LET":
+                self.compileLet()
+            elif self.Tokens.keyWord() == "DO":
+                self.compileDo()
+            elif self.Tokens.keyWord() == "IF":
+                self.compileIf()
+            elif self.Tokens.keyWord() == "WHILE":
+                self.compileWhile()
+            elif self.Tokens.keyWord() == "RETURN":
+                self.compileReturn()
+        self.write("</Statements>\n")
 
     def compileLet(self):
-        pass
+        self.write("<letStatement>\n")
+        if self.Tokens.keyWord() == "LET":
+            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            self.Tokens.advance()
+            if self.Tokens.tokenType() == "IDENTIFIER":
+                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                self.Tokens.advance()
+                if self.Tokens.symbol() == "[":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.symbol() != "]":
+                        self.compileExpression()
+                        if self.Tokens.symbol() == "]":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                if self.Tokens.symbol() == "=":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.symbol() != ";":
+                        self.compileExpression()
+                        if self.Tokens.symbol() == ";":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                            self.write("</letStatement>\n")
 
     def compileDo(self):
-        pass
+        self.write("<doStatement>\n")
+        if self.Tokens.keyWord() == "DO":
+            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            self.Tokens.advance()
+            if self.Tokens.symbol() != ";":
+                self.compileExpression()
+                if self.Tokens.symbol() == ";":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    self.write("</doStatement>\n")
 
     def compileIf(self):
-        pass
+        self.write("<ifStatement>\n")
+        if self.Tokens.keyWord() == "IF":
+            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            self.Tokens.advance()
+            if self.Tokens.symbol() == "(":
+                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.Tokens.advance()
+                if self.Tokens.symbol() != ")":
+                    self.compileExpression()
+                    if self.Tokens.symbol() == ")":
+                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                        self.Tokens.advance()
+                        if self.Tokens.symbol() == "{":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                            if self.Tokens.symbol() != "}":
+                                self.compileStatements()
+                                if self.Tokens.symbol() == "}":
+                                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                    self.Tokens.advance()
+                                if self.Tokens.keyWord() == "ELSE":
+                                    self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                                    self.Tokens.advance()
+                                    if self.Tokens.symbol() == "{":
+                                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                        self.Tokens.advance()
+                                        if self.Tokens.symbol() != "}":
+                                            self.compileStatements()
+                                            if self.Tokens.symbol() == "}":
+                                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                                self.Tokens.advance()
+                                self.write("</ifStatement>\n")
 
     def compileWhile(self):
-        pass
+        self.write("<whileStatement>\n")
+        if self.Tokens.keyWord() == "WHILE":
+            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            self.Tokens.advance()
+            if self.Tokens.symbol() == "(":
+                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.Tokens.advance()
+                if self.Tokens.symbol() != ")":
+                    self.compileExpression()
+                    if self.Tokens.symbol() == ")":
+                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                        self.Tokens.advance()
+                        if self.Tokens.symbol() == "{":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                            if self.Tokens.symbol() != "}":
+                                self.compileStatements()
+                                if self.Tokens.symbol() == "}":
+                                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                    self.Tokens.advance()
+                                    self.write("</whileStatement>\n")
 
     def compileReturn(self):
-        pass
+        self.write("<returnStatement>\n")
+        if self.Tokens.keyWord() == "RETURN":
+            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            self.Tokens.advance()
+            if self.Tokens.symbol() != ";":
+                self.compileExpression()
+            if self.Tokens.symbol() == ";":
+                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.Tokens.advance()
+                self.write("</returnStatement>\n")
 
     def compileExpression(self):
-        pass
+        self.Tokens.advance()
 
     def compileTerm(self):
         pass
