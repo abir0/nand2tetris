@@ -49,10 +49,11 @@ class CompilationEngine:
         if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
-            elif self.Tokens.tokenType() == "IDENTIFIER":
-                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                    self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                elif self.Tokens.tokenType() == "IDENTIFIER":
+                    self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -73,10 +74,11 @@ class CompilationEngine:
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"]:
-                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
-            elif self.Tokens.tokenType() == "IDENTIFIER":
-                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+            if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+                if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"]:
+                    self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                elif self.Tokens.tokenType() == "IDENTIFIER":
+                    self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -97,10 +99,11 @@ class CompilationEngine:
 
     def compileParameterList(self):
         self.write("<ParameterList>\n")
-        if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-            self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
-        elif self.Tokens.tokenType() == "IDENTIFIER":
-            self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+        if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            elif self.Tokens.tokenType() == "IDENTIFIER":
+                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
         self.Tokens.advance()
         if self.Tokens.tokenType() == "IDENTIFIER":
             self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -108,10 +111,11 @@ class CompilationEngine:
             while self.Tokens.symbol() == ",":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
-                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                    self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
-                elif self.Tokens.tokenType() == "IDENTIFIER":
-                    self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+                    if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                        self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                    elif self.Tokens.tokenType() == "IDENTIFIER":
+                        self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                 self.Tokens.advance()
                 if self.Tokens.tokenType() == "IDENTIFIER":
                     self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -137,10 +141,11 @@ class CompilationEngine:
         if self.Tokens.keyWord() == "VAR":
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
-            elif self.Tokens.tokenType() == "IDENTIFIER":
-                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                    self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+                elif self.Tokens.tokenType() == "IDENTIFIER":
+                    self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
@@ -291,7 +296,7 @@ class CompilationEngine:
                         self.write("</Expression>\n")
 
     def compileTerm(self):
-        self.write("<Term>\n")
+        self.write("<term>\n")
         if self.Tokens.getToken() not in CompilationEngine.SET:
             if self.Tokens.tokenType() == "INT_CONST":
                 self.write("<integerConstant> " + self.Tokens.getToken() + " </integerConstant>\n")
@@ -349,16 +354,16 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
-            self.write("</Term>\n")
+            self.write("</term>\n")
 
     def compileExpressionList(self):
         self.write("<ExpressionList>\n")
-        if True:
+        if self.Tokens.getToken() not in CompilationEngine.SET:
             self.compileExpression()
             while self.Tokens.symbol() == ",":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
-                if True:
+                if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileExpression()
         self.write("</ExpressionList>\n")
 
