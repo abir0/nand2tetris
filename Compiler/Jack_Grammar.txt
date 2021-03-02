@@ -1,0 +1,98 @@
+================
+Lexical Elements
+================
+
+keyword := 'class' | 'constructor' | 'function'
+           | 'method' | 'field' | 'static' | 'var'
+           | 'int' | 'char' | 'boolean' | 'void'
+           | 'true' | 'false' | 'null' | 'this'
+           | 'let' | 'do' | 'if' | 'else' | 'while' | 'return'
+
+letter := 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+          | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N'
+          | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U'
+          | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b'
+          | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i'
+          | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p'
+          | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w'
+          | 'x' | 'y' | 'z'
+
+digit := '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+
+symbol := '{' | '}' | '(' | ')' | '[' | ']' | '.'
+          | ',' | ';' | '+' | '-' | '*' | '/' | '~'
+          | '&' | '|' | '<' | '>' | '='
+
+integerConstant := { digit }
+
+stringConstant := '"' , { letter | digit | symbol | '_' } , '"'
+
+identifier := letter | '_' , { letter | digit | '_' }
+
+
+=================
+Program Structure
+=================
+
+class := 'class' className '{' classVarDec* SubroutineDec* '}'
+
+classVarDec := ( 'static' | 'field' ) type varName { ',' varName } ';'
+
+type := 'int' | 'char' | 'boolean' | className
+
+subroutineDec := ( 'constructor' | 'function' | 'method' ) ( 'void' | type )
+                 subroutineName '(' parameterList ')' subroutineBody
+
+parameterList := [ ( type varName ) { ',' type varName } ]
+
+subroutineBody := '{' varDec* statements '}'
+
+varDec := 'var' type varName { ',' varName } ';'
+
+className := identifier
+
+subroutineName := identifier
+
+varName := identifier
+
+
+==========
+Statements
+==========
+
+statements := statement*
+
+statement := letStatement | ifStatement | whileStatement
+             | doStatement | returnStatement
+
+letStatement := 'let' varName [ '[' expression ']' ] '=' expression ';'
+
+ifStatement := 'if' '(' expression ')' '{' statements '}'
+                [ 'else' '{' statements '}' ]
+
+whileStatement := 'while' '(' expression ')' '{' statements '}'
+
+doStatement := 'do' subroutineCall ';'
+
+returnStatement := 'return' expression? ';'
+
+
+===========
+Expressions
+===========
+
+expression := term { operator term }
+
+term := integerConstant | stringConstant | keyWordConstant
+        | varName | varName '[' expression ']' | subroutineCall
+        | '(' expression ')' | unaryOp term
+
+subroutineCall := subroutineName '(' expressionList ')'
+                  { className | varName } '.' subroutineName
+                  '(' expressionList ')'
+
+operator := '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '='
+
+unaryOp := '-' | '~'
+
+keyWordConstant := 'true' | 'false' | 'null' | 'this'
