@@ -13,9 +13,13 @@ class Compiler:
 
     def compileFiles(self):
         for filename in self.filenames:
-            E = CompilationEngine(filename)
+            V = VMWriter(filename)
+            T = Tokenizer(filename)
+            T.tokenize()
+            E = CompilationEngine(filename, tokens=T, vm_writer=V)
             S = SymbolTable()
             E.compileClass(symbol_table=S)
+            V.close()
             #print(S.class_table)
             #print(S.subroutine_table)
 

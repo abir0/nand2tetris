@@ -10,12 +10,11 @@ class CompilationEngine:
     SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + BINARY_OP + KEYWORD_CONST)
 
 
-    def __init__(self, filename):
-        self.in_filename = filename
+    def __init__(self, filename, tokens, vm_writer):
         self.out_filename = filename.replace(".jack", ".xml")
         self.outfile = open(self.out_filename, "w")
-        self.Tokens = Tokenizer(self.in_filename)
-        self.Tokens.tokenize()
+        self.Tokens = tokens
+        self.vm_writer = vm_writer
 
     def write(self, line):
         self.outfile.write(line)
