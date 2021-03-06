@@ -14,7 +14,10 @@ class Compiler:
     def compileFiles(self):
         for filename in self.filenames:
             E = CompilationEngine(filename)
-            E.compileClass()
+            S = SymbolTable()
+            E.compileClass(symbol_table=S)
+            #print(S.class_table)
+            #print(S.subroutine_table)
 
     @staticmethod
     def get_filenames(path):
