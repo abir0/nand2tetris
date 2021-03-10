@@ -2,7 +2,7 @@ import sys
 from os import listdir
 from os.path import exists, isdir, isfile, join
 from Tokenizer import Tokenizer
-from Parser import CompilationEngine
+from CompilationEngine import CompilationEngine
 from SymbolTable import SymbolTable
 from VMWriter import VMWriter
 
