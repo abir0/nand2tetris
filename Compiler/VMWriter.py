@@ -2,8 +2,9 @@
 
 class VMWriter:
 
-    def __init__(self, filename):
+    def __init__(self, filename, verbose=False):
         self.out_file = open(filename.replace('.jack', '.vm'), 'w')
+        self.verbose = verbose
 
     def writePop(self, segment, index):
         self.out_file.write(" ".join(["pop", segment, index]))
@@ -43,3 +44,5 @@ class VMWriter:
 
     def close(self):
         self.out_file.close()
+        if self.verbose:
+            print("VM file generated")

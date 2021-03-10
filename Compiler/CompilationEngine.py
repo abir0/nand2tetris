@@ -10,17 +10,20 @@ class CompilationEngine:
     SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + BINARY_OP + KEYWORD_CONST)
 
 
-    def __init__(self, filename, tokens, vm_writer):
+    def __init__(self, filename, tokens, vm_writer, verbose=False):
         self.out_filename = filename.replace(".jack", ".xml")
         self.outfile = open(self.out_filename, "w")
         self.Tokens = tokens
         self.vm_writer = vm_writer
+        self.verbose = verbose
 
     def write(self, line):
         self.outfile.write(line)
 
     def close(self):
         self.outfile.close()
+        if self.verbose:
+            print("XML file generated")
 
     def compileClass(self, symbol_table):
         self.Tokens.advance()
@@ -418,6 +421,10 @@ class CompilationEngine:
 
 if __name__ == "__main__":
 
-    C = CompilationEngine(sys.argv[1])
+    V = VMWriter(filename)
+    T = Tokenizer(filename)
+    T.tokenize()
+    E = CompilationEngine(filename, tokens=T, vm_writer=V)
     S = SymbolTable()
-    C.compileClass(symbol_table=S)
+    E.compileClass(symbol_table=S)
+    V.close()

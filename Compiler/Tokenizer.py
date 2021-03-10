@@ -12,10 +12,11 @@ class Tokenizer:
     SYMBOLS = ["{", "}", "(", ")", "[", "]", ".", ",", ";",
                "+", "-", "*", "/", "~", "&", "|", "<", ">", "="]
 
-    def __init__(self, filename):
+    def __init__(self, filename, verbose=False):
         self.filename = filename
         self.tokens = list()
         self.token = str()
+        self.verbose = verbose
 
     @staticmethod
     def read_file(filename):
@@ -66,7 +67,12 @@ class Tokenizer:
             else:
                 token += char
         self.tokens = list(filter(len, self.tokens))
-        print(self.tokens)
+        if self.verbose:
+            print("Tokens:")
+            print("`", end="")
+            print("`\t`".join(self.tokens), end="")
+            print("`", end="")
+            print("\n")
 
     def hasMoreTokens(self):
         """Return whether there are more tokens or not."""
@@ -120,7 +126,7 @@ class Tokenizer:
         if self.tokenType() == "STR_CONST":
             return str(self.token[1:-1])
 
-    def writeTokens(self, flag=False):
+    def writeTokens(self):
         """Write the tokens in xml."""
 
         char_entity = {"{": "&lcub;", "}": "&rcub;", "(": "&lpar;", ")": "&rpar;",
@@ -134,27 +140,27 @@ class Tokenizer:
             while self.hasMoreTokens():
                 self.advance()
                 if self.tokenType() == "KEYWORD":
-                    if flag:
+                    if self.verbose:
                         print(self.tokenType().ljust(10), "|", self.keyWord())
                     outfile.write("<keyword> " + self.token + " </keyword>\n")
 
                 elif self.tokenType() == "SYMBOL":
-                    if flag:
+                    if self.verbose:
                         print(self.tokenType().ljust(10), "|", self.symbol())
                     outfile.write("<symbol> " + self.token + " </symbol>\n")
 
                 elif self.tokenType() == "IDENTIFIER":
-                    if flag:
+                    if self.verbose:
                         print(self.tokenType().ljust(10), "|", self.identifier())
                     outfile.write("<identifier> " + self.token + " </identifier>\n")
 
                 elif self.tokenType() == "INT_CONST":
-                    if flag:
+                    if self.verbose:
                         print(self.tokenType().ljust(10), "|", self.intVal())
                     outfile.write("<integerConstant> " + self.token + " </integerConstant>\n")
 
                 elif self.tokenType() == "STR_CONST":
-                    if flag:
+                    if self.verbose:
                         print(self.tokenType().ljust(10), "|", self.stringVal())
                     outfile.write("<stringConstant> " + self.token[1:-1] + " </stringConstant>\n")
             outfile.write("</tokens>")
@@ -163,13 +169,13 @@ class Tokenizer:
 if __name__ == "__main__":
 
     try:
-        flag = sys.argv[2]
-        if flag == "--verbose" or flag == "-v":
-            flag = True
+        verbose = sys.argv[2]
+        if verbose == "--verbose" or verbose == "-v":
+            verbose = True
     except:
-        flag = False
+        verbose = False
 
-    T = Tokenizer(sys.argv[1])
+    T = Tokenizer(sys.argv[1], verbose)
     T.tokenize()
-    T.writeTokens(flag)
+    T.writeTokens(verbose)
     del T
