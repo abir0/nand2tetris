@@ -88,7 +88,7 @@ term := integerConstant | stringConstant | keyWordConstant
         | '(' expression ')' | unaryOp term
 
 subroutineCall := subroutineName '(' expressionList ')'
-                  { className | varName } '.' subroutineName
+                  | { className | varName } '.' subroutineName
                   '(' expressionList ')'
 
 operator := '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '='

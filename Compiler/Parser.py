@@ -80,7 +80,7 @@ class CompilationEngine:
                     self.write("</classVarDec>\n")
 
     def compileSubroutineDec(self, symbol_table):
-        self.write("<SubroutineDec>\n")
+        self.write("<subroutineDec>\n")
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
@@ -105,10 +105,10 @@ class CompilationEngine:
                         if self.Tokens.symbol() == "{":
                             self.compileSubroutineBody(symbol_table=symbol_table)
                             self.Tokens.advance()
-                            self.write("</SubroutineDec>\n")
+                            self.write("</subroutineDec>\n")
 
     def compileParameterList(self, symbol_table):
-        self.write("<ParameterList>\n")
+        self.write("<parameterList>\n")
         var_kind = 'argument'   # variable kind
         if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
             var_type = self.Tokens.getToken()   # variable type
@@ -137,10 +137,10 @@ class CompilationEngine:
                     symbol_table.define(name=var_name, type=var_type, kind=var_kind)
                     self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                     self.Tokens.advance()
-                    self.write("</ParameterList>\n")
+                    self.write("</parameterList>\n")
 
     def compileSubroutineBody(self, symbol_table):
-        self.write("<SubroutineBody>\n")
+        self.write("<subroutineBody>\n")
         if self.Tokens.symbol() == "{":
             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
             self.Tokens.advance()
@@ -151,10 +151,10 @@ class CompilationEngine:
             if self.Tokens.symbol() == "}":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
-                self.write("</SubroutineBody>\n")
+                self.write("</subroutineBody>\n")
 
     def compileVarDec(self, symbol_table):
-        self.write("<VarDec>\n")
+        self.write("<varDec>\n")
         var_kind = 'local'
         if self.Tokens.keyWord() == "VAR":
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
@@ -182,10 +182,10 @@ class CompilationEngine:
                 if self.Tokens.symbol() == ";":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
-                    self.write("</VarDec>\n")
+                    self.write("</varDec>\n")
 
     def compileStatements(self):
-        self.write("<Statements>\n")
+        self.write("<statements>\n")
         while self.Tokens.keyWord() in ["LET", "DO", "IF", "WHILE", "RETURN"]:
             if self.Tokens.keyWord() == "LET":
                 self.compileLet()
@@ -197,7 +197,7 @@ class CompilationEngine:
                 self.compileWhile()
             elif self.Tokens.keyWord() == "RETURN":
                 self.compileReturn()
-        self.write("</Statements>\n")
+        self.write("</statements>\n")
 
     def compileLet(self):
         self.write("<letStatement>\n")
@@ -230,8 +230,31 @@ class CompilationEngine:
         if self.Tokens.keyWord() == "DO":
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            if self.Tokens.symbol() != ";":
-                self.compileExpression()
+            if self.Tokens.tokenType() == "IDENTIFIER":
+                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                self.Tokens.advance()
+                if self.Tokens.symbol() == "(":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.getToken() not in CompilationEngine.SET:
+                        self.compileExpressionList()
+                        if self.Tokens.symbol() == ")":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                elif self.Tokens.symbol() == ".":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.tokenType() == "IDENTIFIER":
+                        self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                        self.Tokens.advance()
+                        if self.Tokens.symbol() == "(":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
+                            if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
+                                self.compileExpressionList()
+                            if self.Tokens.symbol() == ")":
+                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
@@ -307,7 +330,7 @@ class CompilationEngine:
                 self.write("</returnStatement>\n")
 
     def compileExpression(self):
-        self.write("<Expression>\n")
+        self.write("<expression>\n")
         if self.Tokens.getToken() not in CompilationEngine.SET:
             self.compileTerm()
             while self.Tokens.getToken() not in CompilationEngine.SET:
@@ -316,7 +339,9 @@ class CompilationEngine:
                     self.Tokens.advance()
                     if self.Tokens.getToken() not in CompilationEngine.SET:
                         self.compileTerm()
-                        self.write("</Expression>\n")
+        self.write("</expression>\n")
+
+                        ### compileExpression has errors ###
 
     def compileTerm(self):
         self.write("<term>\n")
@@ -325,7 +350,7 @@ class CompilationEngine:
                 self.write("<integerConstant> " + self.Tokens.getToken() + " </integerConstant>\n")
                 self.Tokens.advance()
             elif self.Tokens.tokenType() == "STR_CONST":
-                self.write("<stringConstant> " + self.Tokens.getToken() + " </stringConstant>\n")
+                self.write("<stringConstant> " + self.Tokens.getToken()[1:-1] + " </stringConstant>\n")
                 self.Tokens.advance()
             elif self.Tokens.keyWord() in CompilationEngine.KEYWORD_CONST:
                 self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
@@ -350,11 +375,11 @@ class CompilationEngine:
                     elif self.Tokens.symbol() == "(":
                         self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
-                        if self.Tokens.getToken() not in CompilationEngine.SET:
+                        if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
                             self.compileExpressionList()
-                            if self.Tokens.symbol() == ")":
-                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                                self.Tokens.advance()
+                        if self.Tokens.symbol() == ")":
+                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                            self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
@@ -377,10 +402,10 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
-            self.write("</term>\n")
+        self.write("</term>\n")
 
     def compileExpressionList(self):
-        self.write("<ExpressionList>\n")
+        self.write("<expressionList>\n")
         if self.Tokens.getToken() not in CompilationEngine.SET:
             self.compileExpression()
             while self.Tokens.symbol() == ",":
@@ -388,7 +413,7 @@ class CompilationEngine:
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileExpression()
-        self.write("</ExpressionList>\n")
+        self.write("</expressionList>\n")
 
 
 if __name__ == "__main__":
