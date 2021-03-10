@@ -218,7 +218,7 @@ class CompilationEngine:
                         if self.Tokens.symbol() == "]":
                             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
-                if self.Tokens.symbol() == "=":
+                elif self.Tokens.symbol() == "=":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
                     if self.Tokens.symbol() != ";":
@@ -226,7 +226,7 @@ class CompilationEngine:
                         if self.Tokens.symbol() == ";":
                             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
-                            self.write("</letStatement>\n")
+        self.write("</letStatement>\n")
 
     def compileDo(self):
         self.write("<doStatement>\n")
@@ -239,11 +239,11 @@ class CompilationEngine:
                 if self.Tokens.symbol() == "(":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
-                    if self.Tokens.getToken() not in CompilationEngine.SET:
+                    if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
                         self.compileExpressionList()
-                        if self.Tokens.symbol() == ")":
-                            self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                            self.Tokens.advance()
+                    if self.Tokens.symbol() == ")":
+                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                        self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
@@ -392,11 +392,11 @@ class CompilationEngine:
                         if self.Tokens.symbol() == "(":
                             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
-                            if self.Tokens.getToken() not in CompilationEngine.SET:
+                            if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
                                 self.compileExpressionList()
-                                if self.Tokens.symbol() == ")":
-                                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                                    self.Tokens.advance()
+                            if self.Tokens.symbol() == ")":
+                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                                self.Tokens.advance()
             elif self.Tokens.symbol() == "(":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
