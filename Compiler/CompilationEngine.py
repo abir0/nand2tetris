@@ -7,7 +7,7 @@ class CompilationEngine:
     BINARY_OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
     UNARY_OP = ["-", "~"]
     KEYWORD_CONST = ["true", "false", "null", "this"]
-    SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + BINARY_OP + KEYWORD_CONST)
+    SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + UNARY_OP + BINARY_OP + KEYWORD_CONST)
 
 
     def __init__(self, filename, tokens, vm_writer, verbose=False):
@@ -107,7 +107,6 @@ class CompilationEngine:
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
                             self.compileSubroutineBody(symbol_table=symbol_table)
-                            self.Tokens.advance()
                             self.write("</subroutineDec>\n")
 
     def compileParameterList(self, symbol_table):
@@ -218,7 +217,7 @@ class CompilationEngine:
                         if self.Tokens.symbol() == "]":
                             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
-                elif self.Tokens.symbol() == "=":
+                if self.Tokens.symbol() == "=":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
                     if self.Tokens.symbol() != ";":
@@ -355,7 +354,7 @@ class CompilationEngine:
             elif self.Tokens.tokenType() == "STR_CONST":
                 self.write("<stringConstant> " + self.Tokens.getToken()[1:-1] + " </stringConstant>\n")
                 self.Tokens.advance()
-            elif self.Tokens.keyWord() in CompilationEngine.KEYWORD_CONST:
+            elif self.Tokens.getToken() in CompilationEngine.KEYWORD_CONST:
                 self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                 self.Tokens.advance()
             elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
