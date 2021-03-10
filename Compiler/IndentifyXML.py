@@ -3,8 +3,8 @@ import re
 
 def main(filename):
 
-    open_tag = r'\<[^\\]*?\>'
-    close_tag = r'\<\\.*?\>'
+    open_tag = r'<[^\/]*?>'
+    close_tag = r'<\/.*?>'
     with open(filename, 'r') as fh:
         data = fh.readlines()
 
@@ -13,8 +13,8 @@ def main(filename):
         for line in data:
             if re.search(close_tag, line) is not None:
                 indent_level -= 1
-            line = "\t" * indent_level + line
-            fh.writeline(line)
+            line = "  " * indent_level + line
+            fh.write(line)
             if re.search(open_tag, line) is not None:
                 indent_level += 1
 
