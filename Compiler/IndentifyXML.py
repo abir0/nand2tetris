@@ -11,13 +11,12 @@ def main(filename):
     with open(filename.replace(".xml", "P.xml"), 'w') as fh:
         indent_level = 0
         for line in data:
-            if re.search(close_tag, line) is not None:
-                indent_level -= 1
-            line = "  " * indent_level + line
-            fh.write(line)
             if re.search(open_tag, line) is not None:
                 indent_level += 1
-
+            line = "  " * indent_level + line
+            fh.write(line)
+            if re.search(close_tag, line) is not None:
+                indent_level -= 1
 
 
 if __name__ == "__main__":
