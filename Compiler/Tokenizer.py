@@ -32,7 +32,7 @@ class Tokenizer:
         """Remove the comments from the data."""
 
         comment_pattern1 = r"\/\/.*?(\r\n|\r|\n)"
-        comment_pattern2 = r"\/\*.*?\*\/"
+        comment_pattern2 = r"\/\*[\s\S]*?\*\/"
 
         file_data = re.sub(comment_pattern1, "", file_data)
         file_data = re.sub(comment_pattern2, "", file_data)

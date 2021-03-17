@@ -91,6 +91,8 @@ subroutineCall := subroutineName '(' expressionList ')'
                   | { className | varName } '.' subroutineName
                   '(' expressionList ')'
 
+expressionList := [ expression { ',' expression } ]
+
 operator := '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '='
 
 unaryOp := '-' | '~'
