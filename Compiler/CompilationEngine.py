@@ -198,58 +198,51 @@ class CompilationEngine:
 
     def compileLet(self):
         if self.Tokens.keyWord() == "LET":
-            #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
-                #self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                name = self.Tokens.getToken()
+                segment = self.symbol_table.KindOf(self, name)
+                index = self.symbol_table.IndexOf(self, name)
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "[":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
                     if self.Tokens.symbol() != "]":
                         self.compileExpression()
                         if self.Tokens.symbol() == "]":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
                 if self.Tokens.symbol() == "=":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
                     if self.Tokens.symbol() != ";":
                         self.compileExpression()
                         if self.Tokens.symbol() == ";":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
+                            self.vm_writer.writePop(segment, index)
 
     def compileDo(self):
         if self.Tokens.keyWord() == "DO":
-            #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
-                #self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                name = self.Tokens.getToken()
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
-                    self.compileExpressionList()
+                    nArgs = self.compileExpressionList()
                     if self.Tokens.symbol() == ")":
-                        #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    name += "."
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
-                        #self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                        name +=  self.Tokens.getToken()
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "(":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
-                            self.compileExpressionList()
+                            nArgs = self.compileExpressionList()
                             if self.Tokens.symbol() == ")":
-                                #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                 self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
+                    self.vm_writer.writeCall(name, nArgs)
 
     def compileIf(self):
         labels = []
@@ -309,12 +302,11 @@ class CompilationEngine:
 
     def compileReturn(self):
         if self.Tokens.keyWord() == "RETURN":
-            #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
             if self.Tokens.symbol() != ";":
                 self.compileExpression()
             if self.Tokens.symbol() == ";":
-                #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                self.vm_writer.writeReturn()
                 self.Tokens.advance()
 
     def compileExpression(self):
@@ -374,18 +366,17 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    name += self.Tokens.getToken()
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
-                        #self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                        name += self.Tokens.getToken()
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "(":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
-                            self.compileExpressionList()
+                            nArgs = self.compileExpressionList()
                             if self.Tokens.symbol() == ")":
-                                #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                 self.Tokens.advance()
+                                self.vm_writer.writeCall(name, nArgs)
             elif self.Tokens.symbol() == "(":
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
