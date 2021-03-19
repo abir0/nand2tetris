@@ -16,10 +16,10 @@ class Compiler:
         for filename in self.filenames:
             V = VMWriter(filename, verbose=verbose)
             T = Tokenizer(filename, verbose=verbose)
-            T.tokenize()
-            E = CompilationEngine(tokens=T, vm_writer=V, verbose=verbose)
             S = SymbolTable()
-            E.compileClass(symbol_table=S)
+            T.tokenize()
+            E = CompilationEngine(tokens=T, vm_writer=V, symbol_table=S, verbose=verbose)
+            E.compileClass()
             V.close()
             #print(S.class_table)
             #print(S.subroutine_table)
