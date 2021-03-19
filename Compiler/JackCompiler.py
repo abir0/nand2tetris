@@ -17,7 +17,7 @@ class Compiler:
             V = VMWriter(filename, verbose=verbose)
             T = Tokenizer(filename, verbose=verbose)
             T.tokenize()
-            E = CompilationEngine(filename, tokens=T, vm_writer=V, verbose=verbose)
+            E = CompilationEngine(tokens=T, vm_writer=V, verbose=verbose)
             S = SymbolTable()
             E.compileClass(symbol_table=S)
             V.close()
