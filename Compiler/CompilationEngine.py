@@ -318,11 +318,17 @@ class CompilationEngine:
             self.compileTerm()
             while self.Tokens.getToken() not in CompilationEngine.SET:
                 if self.Tokens.symbol() in CompilationEngine.BINARY_OP:
+                    call = False
+                    if self.Tokens.getToken() in ["*", "/"]:
+                        call = True
                     command = self.ARITHMATIC[self.Tokens.getToken()]
                     self.Tokens.advance()
                     if self.Tokens.getToken() not in CompilationEngine.SET:
                         self.compileTerm()
-                        self.vm_writer.writeArithmatic(command)
+                        if not call:
+                            self.vm_writer.writeArithmatic(command)
+                        else:
+                            self.vm_writer.writeCall(command, "2")
 
 
     def compileTerm(self):
