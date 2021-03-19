@@ -394,7 +394,7 @@ class CompilationEngine:
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileExpression()
                     count += 1
-        return count
+        return str(count)
 
     def generateLabel(self):
         self.label += 1
