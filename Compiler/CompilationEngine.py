@@ -397,7 +397,8 @@ class CompilationEngine:
         return count
 
     def generateLabel(self):
-        return "L" + str(self.label += 1)
+        self.label += 1
+        return "L" + str(self.label)
 
 if __name__ == "__main__":
 
