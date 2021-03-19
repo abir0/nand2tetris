@@ -19,12 +19,13 @@ class CompilationEngine:
                   "=" : "eq", "-" : "neg", "~" : "not"}
 
 
-    def __init__(self, tokens, vm_writer, verbose=False):
+    def __init__(self, tokens, vm_writer, symbol_table, verbose=False):
         self.Tokens = tokens
         self.vm_writer = vm_writer
+        self.symbol_table = symbol_table
         self.verbose = verbose
 
-    def compileClass(self, symbol_table):
+    def compileClass(self):
         self.Tokens.advance()
         if self.Tokens.keyWord() == "CLASS":
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
@@ -38,16 +39,16 @@ class CompilationEngine:
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
                     while self.Tokens.keyWord() in ["STATIC", "FIELD"]:
-                        self.compileClassVarDec(symbol_table=symbol_table)
+                        self.compileClassVarDec()
                     while self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
-                        symbol_table.startSubroutine()
+                        self.symbol_table.startSubroutine()
                         if self.Tokens.keyWord() in ["CONSTRUCTOR", "METHOD"]:
-                            symbol_table.define(name='this', kind='argument', type=class_name)
-                        self.compileSubroutineDec(symbol_table=symbol_table)
+                            self.symbol_table.define(name='this', kind='argument', type=class_name)
+                        self.compileSubroutineDec()
                     if self.Tokens.symbol() == "}":
                         self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
 
-    def compileClassVarDec(self, symbol_table):
+    def compileClassVarDec(self):
         if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
             var_kind = self.Tokens.getToken()
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
@@ -61,7 +62,7 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 var_name = self.Tokens.getToken()
-                symbol_table.define(name=var_name, type=var_type, kind=var_kind, kind_flag=True)
+                self.symbol_table.define(name=var_name, type=var_type, kind=var_kind, kind_flag=True)
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                 self.Tokens.advance()
                 while self.Tokens.symbol() == ",":
@@ -69,14 +70,14 @@ class CompilationEngine:
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
                         var_name = self.Tokens.getToken()
-                        symbol_table.define(name=var_name, type=var_type, kind=var_kind, kind_flag=True)
+                        self.symbol_table.define(name=var_name, type=var_type, kind=var_kind, kind_flag=True)
                         self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                         self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
 
-    def compileSubroutineDec(self, symbol_table):
+    def compileSubroutineDec(self):
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
@@ -92,14 +93,14 @@ class CompilationEngine:
                 if self.Tokens.symbol() == "(":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
-                    self.compileParameterList(symbol_table=symbol_table)
+                    self.compileParameterList()
                     if self.Tokens.symbol() == ")":
                         self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
-                            self.compileSubroutineBody(symbol_table=symbol_table)
+                            self.compileSubroutineBody()
 
-    def compileParameterList(self, symbol_table):
+    def compileParameterList(self):
         if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
             var_kind = 'argument'   # variable kind
             var_type = self.Tokens.getToken()   # variable type
@@ -110,7 +111,7 @@ class CompilationEngine:
             self.Tokens.advance()
         if self.Tokens.tokenType() == "IDENTIFIER":
             var_name = self.Tokens.getToken()   # variable name
-            symbol_table.define(name=var_name, type=var_type, kind=var_kind)    # define variable
+            self.symbol_table.define(name=var_name, type=var_type, kind=var_kind)    # define variable
             self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
             self.Tokens.advance()
             while self.Tokens.symbol() == ",":
@@ -125,23 +126,23 @@ class CompilationEngine:
                 self.Tokens.advance()
                 if self.Tokens.tokenType() == "IDENTIFIER":
                     var_name = self.Tokens.getToken()
-                    symbol_table.define(name=var_name, type=var_type, kind=var_kind)
+                    self.symbol_table.define(name=var_name, type=var_type, kind=var_kind)
                     self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                     self.Tokens.advance()
 
-    def compileSubroutineBody(self, symbol_table):
+    def compileSubroutineBody(self):
         if self.Tokens.symbol() == "{":
             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
             self.Tokens.advance()
             while self.Tokens.keyWord() == "VAR":
-                self.compileVarDec(symbol_table)
+                self.compileVarDec()
             if self.Tokens.keyWord() in ["LET", "DO", "IF", "WHILE", "RETURN"]:
                 self.compileStatements()
             if self.Tokens.symbol() == "}":
                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
 
-    def compileVarDec(self, symbol_table):
+    def compileVarDec(self):
         var_kind = 'local'
         if self.Tokens.keyWord() == "VAR":
             self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
@@ -155,7 +156,7 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 var_name = self.Tokens.getToken()
-                symbol_table.define(name=var_name, type=var_type, kind=var_kind)
+                self.symbol_table.define(name=var_name, type=var_type, kind=var_kind)
                 self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                 self.Tokens.advance()
                 while self.Tokens.symbol() == ",":
@@ -163,7 +164,7 @@ class CompilationEngine:
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
                         var_name = self.Tokens.getToken()
-                        symbol_table.define(name=var_name, type=var_type, kind=var_kind)
+                        self.symbol_table.define(name=var_name, type=var_type, kind=var_kind)
                         self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
                         self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
@@ -326,29 +327,31 @@ class CompilationEngine:
                 self.Tokens.advance()
             elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
                 command = self.ARITHMATIC[self.Tokens.getToken()]
-                self.vm_writer.writeArithmatic(command)
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileTerm()
+                    self.vm_writer.writeArithmatic(command)
             elif self.Tokens.tokenType() == "IDENTIFIER":
-                self.write("<identifier> " + self.Tokens.getToken() + " </identifier>\n")
+                name = self.Tokens.getToken()
                 self.Tokens.advance()
-                if self.Tokens.symbol() in ["[", "("]:
-                    if self.Tokens.symbol() == "[":
-                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                        self.Tokens.advance()
-                        if self.Tokens.getToken() not in CompilationEngine.SET:
-                            self.compileExpression()
-                            if self.Tokens.symbol() == "]":
-                                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                                self.Tokens.advance()
-                    elif self.Tokens.symbol() == "(":
-                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
-                        self.Tokens.advance()
-                        self.compileExpressionList()
-                        if self.Tokens.symbol() == ")":
+                if self.Tokens.symbol() not in ["[", "(", "."]:
+                    segment = self.symbol_table.KindOf(self, name)
+                    index = self.symbol_table.IndexOf(self, name)
+                    self.vm_writer.writePush(segment, index)
+                if self.Tokens.symbol() == "[":
+                    self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    self.Tokens.advance()
+                    if self.Tokens.getToken() not in CompilationEngine.SET:
+                        self.compileExpression()
+                        if self.Tokens.symbol() == "]":
                             self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
+                elif self.Tokens.symbol() == "(":
+                    self.Tokens.advance()
+                    nArgs = self.compileExpressionList()
+                    self.vm_writer.writeCall(name, nArgs)
+                    if self.Tokens.symbol() == ")":
+                        self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
                     self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
@@ -363,30 +366,30 @@ class CompilationEngine:
                                 self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                 self.Tokens.advance()
             elif self.Tokens.symbol() == "(":
-                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileExpression()
                     if self.Tokens.symbol() == ")":
-                        self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
 
     def compileExpressionList(self):
+        count = 0
         if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
             self.compileExpression()
+            count += 1
             while self.Tokens.symbol() == ",":
-                self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileExpression()
-
+                    count += 1
+        return count
 
 if __name__ == "__main__":
 
     V = VMWriter(filename)
     T = Tokenizer(filename)
     T.tokenize()
-    E = CompilationEngine(tokens=T, vm_writer=V)
     S = SymbolTable()
-    E.compileClass(symbol_table=S)
+    E = CompilationEngine(tokens=T, vm_writer=V, symbol_table=S)
+    E.compileClass()
     V.close()
