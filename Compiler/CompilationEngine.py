@@ -14,9 +14,9 @@ class CompilationEngine:
 
     ENTITY = {"~": "&sim;", "&": "&amp;", "<": "&lt;", ">": "&gt;", "=": "&equals;"}
 
-    ARITHMATIC = {"+" : "add", "-" : "sub", "*" : "Math.mult()", "/" : "Math.divide()",
-                  "&" : "and", "|" : "or", "<" : "lt", ">" : "gt",
-                  "=" : "eq", "-" : "neg", "~" : "not"}
+    ARITHMATIC = {"+" : "add", "-" : "sub", "*" : "Math.multiply()",
+                  "/" : "Math.divide()", "&" : "and", "|" : "or",
+                  "<" : "lt", ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
 
 
     def __init__(self, tokens, vm_writer, symbol_table, verbose=False):
