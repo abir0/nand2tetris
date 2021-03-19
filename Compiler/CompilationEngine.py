@@ -14,9 +14,9 @@ class CompilationEngine:
 
     ENTITY = {"~": "&sim;", "&": "&amp;", "<": "&lt;", ">": "&gt;", "=": "&equals;"}
 
-    ARITHMATIC = {"+" : "add", "-" : "sub", "*" : "Math.multiply()",
-                  "/" : "Math.divide()", "&" : "and", "|" : "or",
-                  "<" : "lt", ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
+    ARITHMATIC = {"+" : "add", "-" : "sub", "*" : "Math.multiply",
+                  "/" : "Math.divide", "&" : "and", "|" : "or", "<" : "lt",
+                  ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
 
 
     def __init__(self, tokens, vm_writer, symbol_table, verbose=False):
@@ -205,10 +205,12 @@ class CompilationEngine:
                 index = self.symbol_table.IndexOf(self, name)
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "[":
+                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
                     if self.Tokens.symbol() != "]":
                         self.compileExpression()
                         if self.Tokens.symbol() == "]":
+                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
                 if self.Tokens.symbol() == "=":
                     self.Tokens.advance()
