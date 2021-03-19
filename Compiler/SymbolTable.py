@@ -26,20 +26,23 @@ class SymbolTable:
         else:
             self.index_subroutine[kind] = self.index_subroutine.get(kind, -1) + 1
 
-    def TypeOf(self, name, class_flag=False):
-        if class_flag:
-            self.class_table[name][0]
-        else:
-            self.subroutine_table[name][0]
+    def TypeOf(self, name):
+        try:
+            type = self.subroutine_table[name][0]
+        except:
+            type = self.class_table[name][0]
+        return type
 
-    def KindOf(self, name, class_flag=False):
-        if class_flag:
-            self.class_table[name][1]
-        else:
-            self.subroutine_table[name][1]
+    def KindOf(self, name):
+        try:
+            kind = self.subroutine_table[name][1]
+        except:
+            kind = self.class_table[name][1]
+        return kind
 
-    def IndexOf(self, name, class_flag=False):
-        if class_flag:
-            self.class_table[name][2]
-        else:
-            self.subroutine_table[name][2]
+    def IndexOf(self, name):
+        try:
+            index = self.subroutine_table[name][2]
+        except:
+            index = self.class_table[name][2]
+        return index
