@@ -23,6 +23,7 @@ class CompilationEngine:
         self.Tokens = tokens
         self.vm_writer = vm_writer
         self.symbol_table = symbol_table
+        self.label = 0
         self.verbose = verbose
 
     def compileClass(self):
@@ -251,57 +252,60 @@ class CompilationEngine:
                     self.Tokens.advance()
 
     def compileIf(self):
+        labels = []
         if self.Tokens.keyWord() == "IF":
-            #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
             if self.Tokens.symbol() == "(":
-                #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
                 if self.Tokens.symbol() != ")":
                     self.compileExpression()
                     if self.Tokens.symbol() == ")":
-                        #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
                             if self.Tokens.symbol() != "}":
+                                self.vm_writer.writeArithmatic("not")
+                                labels.append(self.generateLabel())
+                                self.vm_writer.writeIf(labels[-1])
                                 self.compileStatements()
                                 if self.Tokens.symbol() == "}":
-                                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                     self.Tokens.advance()
                                 if self.Tokens.keyWord() == "ELSE":
-                                    #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                                     self.Tokens.advance()
                                     if self.Tokens.symbol() == "{":
-                                        #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                         self.Tokens.advance()
                                         if self.Tokens.symbol() != "}":
+                                            labels.append(self.generateLabel())
+                                            self.vm_writer.writeGoto(labels[-1])
+                                            self.vm_writer.writeLabel(labels.pop(0))
                                             self.compileStatements()
                                             if self.Tokens.symbol() == "}":
-                                                #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                                 self.Tokens.advance()
+                                self.vm_writer.writeLabel(labels.pop(0))
 
     def compileWhile(self):
+        labels = []
         if self.Tokens.keyWord() == "WHILE":
-            #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
             if self.Tokens.symbol() == "(":
-                #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
                 if self.Tokens.symbol() != ")":
+                    labels.append(self.generateLabel())
+                    self.vm_writer.writeLabel(labels[-1])
                     self.compileExpression()
                     if self.Tokens.symbol() == ")":
-                        #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
                             if self.Tokens.symbol() != "}":
+                                self.vm_writer.writeArithmatic("not")
+                                labels.append(self.generateLabel())
+                                self.vm_writer.writeIf(labels[-1])
                                 self.compileStatements()
+                                self.vm_writer.writeGoto(labels.pop(0))
                                 if self.Tokens.symbol() == "}":
-                                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                                     self.Tokens.advance()
+                                    self.vm_writer.writeLabel(labels.pop(0))
 
     def compileReturn(self):
         if self.Tokens.keyWord() == "RETURN":
@@ -400,6 +404,9 @@ class CompilationEngine:
                     self.compileExpression()
                     count += 1
         return count
+
+    def generateLabel(self):
+        return str(self.label += 1)
 
 if __name__ == "__main__":
 
