@@ -4,6 +4,24 @@ from SymbolTable import SymbolTable
 
 class CompilationEngine:
 
+    SUBROUTINE = ["CONSTRUCTOR", "FUNCTION", "METHOD"]
+
+    METHOD = ["CONSTRUCTOR", "METHOD"]
+
+    C_VAR = ["STATIC", "FIELD"]
+
+    VAR_TYPE = ["INT", "CHAR", "BOOLEAN"]
+
+    F_TYPE = ["VOID", "INT", "CHAR", "BOOLEAN"]
+
+    STATEMENT = ["LET", "DO", "IF", "WHILE", "RETURN"]
+
+    ARITHMATIC = {"+" : "add", "-" : "sub", "*" : "Math.multiply",
+                  "/" : "Math.divide", "&" : "and", "|" : "or", "<" : "lt",
+                  ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
+
+    SEGMENT = {"field" : "this", "static" : "static", "var" : "local", "arg" : "argument"}
+
     BINARY_OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
 
     UNARY_OP = ["-", "~"]
@@ -11,14 +29,6 @@ class CompilationEngine:
     KEYWORD_CONST = ["true", "false", "null", "this"]
 
     SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + UNARY_OP + BINARY_OP + KEYWORD_CONST)
-
-    ENTITY = {"~": "&sim;", "&": "&amp;", "<": "&lt;", ">": "&gt;", "=": "&equals;"}
-
-    ARITHMATIC = {"+" : "add", "-" : "sub", "*" : "Math.multiply",
-                  "/" : "Math.divide", "&" : "and", "|" : "or", "<" : "lt",
-                  ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
-
-    SEGMENT = {"field" : "this", "static" : "static", "var" : "local", "arg" : "argument"}
 
 
     def __init__(self, tokens, vm_writer, symbol_table, verbose=False):
@@ -41,11 +51,11 @@ class CompilationEngine:
                 if self.Tokens.symbol() == "{":
                     #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                     self.Tokens.advance()
-                    while self.Tokens.keyWord() in ["STATIC", "FIELD"]:
+                    while self.Tokens.keyWord() in self.C_VAR:
                         self.compileClassVarDec()
-                    while self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
+                    while self.Tokens.keyWord() in self.SUBROUTINE:
                         self.symbol_table.startSubroutine()
-                        if self.Tokens.keyWord() in ["CONSTRUCTOR", "METHOD"]:
+                        if self.Tokens.keyWord() in self.METHOD:
                             self.symbol_table.define(name='this', kind='argument', type=class_name)
                         self.compileSubroutineDec()
                     if self.Tokens.symbol() == "}":
@@ -53,13 +63,13 @@ class CompilationEngine:
                         pass
 
     def compileClassVarDec(self):
-        if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
+        if self.Tokens.keyWord() in self.C_VAR:
             var_kind = self.SEGMENT[self.Tokens.getToken()]
             #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+            if self.Tokens.keyWord() in self.VAR_TYPE or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
-                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                if self.Tokens.keyWord() in self.VAR_TYPE:
                     #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                     pass
                 elif self.Tokens.tokenType() == "IDENTIFIER":
@@ -84,11 +94,11 @@ class CompilationEngine:
                     self.Tokens.advance()
 
     def compileSubroutineDec(self):
-        if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
+        if self.Tokens.keyWord() in self.SUBROUTINE:
             #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
-            if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
-                if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"]:
+            if self.Tokens.keyWord() in self.F_TYPE or self.Tokens.tokenType() == "IDENTIFIER":
+                if self.Tokens.keyWord() in self.F_TYPE:
                     #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                     pass
                 elif self.Tokens.tokenType() == "IDENTIFIER":
@@ -109,10 +119,10 @@ class CompilationEngine:
                             self.compileSubroutineBody()
 
     def compileParameterList(self):
-        if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+        if self.Tokens.keyWord() in self.VAR_TYPE or self.Tokens.tokenType() == "IDENTIFIER":
             var_kind = self.SEGMENT["arg"]   # variable kind
             var_type = self.Tokens.getToken()   # variable type
-            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+            if self.Tokens.keyWord() in self.VAR_TYPE:
                 #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                 pass
             elif self.Tokens.tokenType() == "IDENTIFIER":
@@ -127,9 +137,9 @@ class CompilationEngine:
             while self.Tokens.symbol() == ",":
                 #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                 self.Tokens.advance()
-                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+                if self.Tokens.keyWord() in self.VAR_TYPE or self.Tokens.tokenType() == "IDENTIFIER":
                     var_type = self.Tokens.getToken()
-                    if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                    if self.Tokens.keyWord() in self.VAR_TYPE:
                         #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                         pass
                     elif self.Tokens.tokenType() == "IDENTIFIER":
@@ -159,9 +169,9 @@ class CompilationEngine:
             #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             var_kind = self.SEGMENT[self.Tokens.getToken()]
             self.Tokens.advance()
-            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
+            if self.Tokens.keyWord() in self.VAR_TYPE or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
-                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
+                if self.Tokens.keyWord() in self.VAR_TYPE:
                     #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
                     pass
                 elif self.Tokens.tokenType() == "IDENTIFIER":
