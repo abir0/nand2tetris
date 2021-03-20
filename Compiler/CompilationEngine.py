@@ -360,10 +360,10 @@ class CompilationEngine:
                     self.vm_writer.writeArithmatic(command)
             elif self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
+                segment = self.symbol_table.KindOf(self, name)
+                index = self.symbol_table.IndexOf(self, name)
                 self.Tokens.advance()
                 if self.Tokens.symbol() not in ["[", "(", "."]:
-                    segment = self.symbol_table.KindOf(self, name)
-                    index = self.symbol_table.IndexOf(self, name)
                     self.vm_writer.writePush(segment, index)
                 if self.Tokens.symbol() == "[":
                     #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
@@ -380,10 +380,12 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    name += self.Tokens.getToken()
+                    #name += self.Tokens.getToken()
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
-                        name += self.Tokens.getToken()
+                        #name += self.Tokens.getToken()
+                        name = self.Tokens.getToken()
+                        self.vm_writer.writePush(segment, index)
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "(":
                             self.Tokens.advance()
