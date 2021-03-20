@@ -18,6 +18,8 @@ class CompilationEngine:
                   "/" : "Math.divide", "&" : "and", "|" : "or", "<" : "lt",
                   ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
 
+    SEGMENT = {"field" : "this", "static" : "static", "var" : "local", "arg" : "argument"}
+
 
     def __init__(self, tokens, vm_writer, symbol_table, verbose=False):
         self.Tokens = tokens
@@ -52,7 +54,7 @@ class CompilationEngine:
 
     def compileClassVarDec(self):
         if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
-            var_kind = self.Tokens.getToken()
+            var_kind = self.SEGMENT[self.Tokens.getToken()]
             #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
@@ -108,7 +110,7 @@ class CompilationEngine:
 
     def compileParameterList(self):
         if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
-            var_kind = 'argument'   # variable kind
+            var_kind = self.SEGMENT["arg"]   # variable kind
             var_type = self.Tokens.getToken()   # variable type
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
                 #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
@@ -153,9 +155,9 @@ class CompilationEngine:
                 self.Tokens.advance()
 
     def compileVarDec(self):
-        var_kind = 'local'
         if self.Tokens.keyWord() == "VAR":
             #self.write("<keyword> " + self.Tokens.getToken() + " </keyword>\n")
+            var_kind = self.SEGMENT[self.Tokens.getToken()]
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
