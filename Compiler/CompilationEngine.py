@@ -11,8 +11,6 @@ class CompilationEngine:
 
     SEGMENT_MAP = {"field" : "this", "static" : "static", "var" : "local", "arg" : "argument"}
 
-    KEYWORD_CONST_MAP = {"true" : "1", "false" : "0", "null" : "0"}
-
     BINARY_OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
 
     UNARY_OP = ["-", "~"]
@@ -315,8 +313,12 @@ class CompilationEngine:
                     self.vm_writer.writeCall("String.appendChar", "1")
                 self.Tokens.advance()
             elif self.Tokens.getToken() in CompilationEngine.KEYWORD_CONST:
-                self.vm_writer.writePush("constant", self.KEYWORD_CONST_MAP[self.Tokens.getToken()])
-                if self.Tokens.getToken() == "true":
+                if self.Tokens.getToken() == "this":
+                    self.vm_writer.writePush("pointer", "0")
+                elif self.Tokens.getToken() in ["false", "null"]:
+                    self.vm_writer.writePush("constant", "0")
+                elif self.Tokens.getToken() == "true":
+                    self.vm_writer.writePush("constant", "0")
                     self.vm_writer.writeArithmatic("neg")
                 self.Tokens.advance()
             elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
