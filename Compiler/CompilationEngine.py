@@ -56,8 +56,6 @@ class CompilationEngine:
                 var_type = self.Tokens.getToken()
                 if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
                     pass
-                elif self.Tokens.tokenType() == "IDENTIFIER":
-                    pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 var_name = self.Tokens.getToken()
@@ -73,12 +71,11 @@ class CompilationEngine:
                     self.Tokens.advance()
 
     def compileSubroutineDec(self):
+        count = self.symbol_table.varCount("this", class_flag=True)
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
-            self.Tokens.advance()
+            keyword = self.Tokens.advance()
             if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 if self.Tokens.keyWord() == "VOID":
-                    pass
-                else:
                     pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
@@ -89,6 +86,10 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
+                            if keyword == "constructor":
+                                self.vm_writer.writePush("constant", str(count))
+                                self.vm_writer.writeCall("Memory.alloc", "1")
+                                self.vm_writer.writePop("pointer", "0")
                             self.compileSubroutineBody()
 
     def compileParameterList(self):
@@ -109,8 +110,6 @@ class CompilationEngine:
                 if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                     var_type = self.Tokens.getToken()
                     if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                        pass
-                    elif self.Tokens.tokenType() == "IDENTIFIER":
                         pass
                 self.Tokens.advance()
                 if self.Tokens.tokenType() == "IDENTIFIER":
@@ -135,8 +134,6 @@ class CompilationEngine:
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
                 if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                    pass
-                elif self.Tokens.tokenType() == "IDENTIFIER":
                     pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
