@@ -88,6 +88,9 @@ class CompilationEngine:
                                 self.vm_writer.writePush("constant", str(count))
                                 self.vm_writer.writeCall("Memory.alloc", "1")
                                 self.vm_writer.writePop("pointer", "0")
+                            elif keyword == "method":
+                                self.vm_writer.writePush("argument", "0")
+                                self.vm_writer.writePop("pointer", "0")
                             self.compileSubroutineBody()
 
     def compileParameterList(self):
@@ -276,6 +279,8 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.symbol() != ";":
                 self.compileExpression()
+            else:
+                self.vm_writer.writePush("constant", "0")
             if self.Tokens.symbol() == ";":
                 self.vm_writer.writeReturn()
                 self.Tokens.advance()
@@ -329,8 +334,9 @@ class CompilationEngine:
                     self.vm_writer.writeArithmatic(command)
             elif self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
-                segment = self.symbol_table.KindOf(self, name)
-                index = self.symbol_table.IndexOf(self, name)
+                type = self.symbol_table.KindOf(name)
+                segment = self.symbol_table.KindOf(name)
+                index = self.symbol_table.IndexOf(name)
                 self.Tokens.advance()
                 if self.Tokens.symbol() not in ["[", "(", "."]:
                     self.vm_writer.writePush(segment, index)
@@ -349,13 +355,12 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    #name += self.Tokens.getToken()
+                    self.vm_writer.writePush(segment, index)
+                    name = type
+                    name += self.Tokens.getToken()
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
-                        #name += self.Tokens.getToken()
-                        ### ISSUE: push class name in method call ###
-                        name = self.Tokens.getToken()
-                        self.vm_writer.writePush(segment, index)
+                        name += self.Tokens.getToken()
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "(":
                             self.Tokens.advance()
