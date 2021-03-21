@@ -14,17 +14,17 @@ class SymbolTable:
 
     def define(self, name, type, kind, class_flag=False):
         if class_flag:
-            self.varCount(kind, class_flag=True)
-            self.subroutine_table[name] = (type, kind, self.index_class[kind])
+            index = self.varCount(kind, class_flag=True) + 1
+            self.subroutine_table[name] = (type, kind, index)
         else:
-            self.varCount(kind, class_flag=False)
-            self.subroutine_table[name] = (type, kind, self.index_subroutine[kind])
+            index = self.varCount(kind, class_flag=False) + 1
+            self.subroutine_table[name] = (type, kind, index)
 
     def varCount(self, kind, class_flag=False):
         if class_flag:
-            self.index_class[kind] = self.index_class.get(kind, -1) + 1
+            return self.index_class.get(kind, -1)
         else:
-            self.index_subroutine[kind] = self.index_subroutine.get(kind, -1) + 1
+            return self.index_subroutine.get(kind, -1)
 
     def TypeOf(self, name):
         try:
