@@ -71,9 +71,15 @@ class CompilationEngine:
     def compileSubroutineDec(self):
         count = self.symbol_table.varCount("this", class_flag=True)
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
+            ##################################
+            ###### FUNCTION dec needed #######
+            ##################################
             keyword = self.Tokens.advance()
             if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 if self.Tokens.keyWord() == "VOID":
+                    ##################################
+                    ##### VOID handling needed #######
+                    ##################################
                     pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
@@ -85,10 +91,12 @@ class CompilationEngine:
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
                             if keyword == "constructor":
+                                ### Object construction ###
                                 self.vm_writer.writePush("constant", str(count))
                                 self.vm_writer.writeCall("Memory.alloc", "1")
                                 self.vm_writer.writePop("pointer", "0")
                             elif keyword == "method":
+                                ### Method construction ###
                                 self.vm_writer.writePush("argument", "0")
                                 self.vm_writer.writePop("pointer", "0")
                             self.compileSubroutineBody()
@@ -172,8 +180,9 @@ class CompilationEngine:
                 index = self.symbol_table.IndexOf(self, name)
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "[":
-                    #######################
-                    #######################
+                    ##################################
+                    ##### ARRAY handling needed ######
+                    ##################################
                     self.Tokens.advance()
                     if self.Tokens.symbol() != "]":
                         self.compileExpression()
@@ -186,9 +195,9 @@ class CompilationEngine:
                         if self.Tokens.symbol() == ";":
                             self.Tokens.advance()
                             if bool(str):
-                                ######################
-                                ######################
-                                ######################
+                                ##################################
+                                ##### STRING handling needed #####
+                                ##################################
                                 pass
                             self.vm_writer.writePop(segment, index)
 
@@ -312,12 +321,14 @@ class CompilationEngine:
                 str = self.Tokens.getToken()[1:-1]
                 length = len(str)
                 for i in str:
-                    ################
-                    ################
+                    ##################################
+                    ##### STRING handling needed #####
+                    ##################################
                     self.vm_writer.writePush("constant", self.Tokens.getToken())
                     self.vm_writer.writeCall("String.appendChar", "1")
                 self.Tokens.advance()
             elif self.Tokens.getToken() in CompilationEngine.KEYWORD_CONST:
+                ### Keyword constant ###
                 if self.Tokens.getToken() == "this":
                     self.vm_writer.writePush("pointer", "0")
                 elif self.Tokens.getToken() in ["false", "null"]:
@@ -335,21 +346,26 @@ class CompilationEngine:
             elif self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
                 type = self.symbol_table.KindOf(name)
+                ######################################
+                ###### SEGMENT_MAP not used!!!! ######
+                ######################################
                 segment = self.symbol_table.KindOf(name)
                 index = self.symbol_table.IndexOf(name)
                 self.Tokens.advance()
                 if self.Tokens.symbol() not in ["[", "(", "."]:
                     self.vm_writer.writePush(segment, index)
                 if self.Tokens.symbol() == "[":
-                    #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
+                    ###################################
+                    ###### ARRAY handling needed ######
+                    ###################################
                     self.Tokens.advance()
                     if self.Tokens.getToken() not in CompilationEngine.SET:
                         self.compileExpression()
                         if self.Tokens.symbol() == "]":
-                            #self.write("<symbol> " + self.Tokens.getToken() + " </symbol>\n")
                             self.Tokens.advance()
                 elif self.Tokens.symbol() == "(":
                     self.Tokens.advance()
+                    ### Subroutine call ###
                     nArgs = self.compileExpressionList()
                     self.vm_writer.writeCall(name, nArgs)
                     if self.Tokens.symbol() == ")":
@@ -367,6 +383,7 @@ class CompilationEngine:
                             nArgs = self.compileExpressionList()
                             if self.Tokens.symbol() == ")":
                                 self.Tokens.advance()
+                                ### Class.Subroutine call ###
                                 self.vm_writer.writeCall(name, nArgs)
             elif self.Tokens.symbol() == "(":
                 self.Tokens.advance()
