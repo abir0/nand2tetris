@@ -178,28 +178,28 @@ class CompilationEngine:
                 name = self.Tokens.getToken()
                 segment = self.symbol_table.KindOf(self, name)
                 index = self.symbol_table.IndexOf(self, name)
+                self.vm_writer.writePush(segment, index)
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "[":
-                    ##################################
-                    ##### ARRAY handling needed ######
-                    ##################################
                     self.Tokens.advance()
                     if self.Tokens.symbol() != "]":
                         self.compileExpression()
                         if self.Tokens.symbol() == "]":
+                            self.vm_writer.writeArithmatic("add")
+
                             self.Tokens.advance()
                 if self.Tokens.symbol() == "=":
                     self.Tokens.advance()
                     if self.Tokens.symbol() != ";":
-                        str = self.compileExpression()
+                        self.compileExpression()
+                        self.vm_writer.writePop("pointer", "1")
+                        self.vm_writer.writePush("that", "0")
+                        self.vm_writer.writePop("temp", "0")
+                        self.vm_writer.writePop("pointer", "1")
+                        self.vm_writer.writePush("temp", "0")
+                        self.vm_writer.writePop("that", "0")
                         if self.Tokens.symbol() == ";":
                             self.Tokens.advance()
-                            if bool(str):
-                                ##################################
-                                ##### STRING handling needed #####
-                                ##################################
-                                pass
-                            self.vm_writer.writePop(segment, index)
 
     def compileDo(self):
         if self.Tokens.keyWord() == "DO":
@@ -352,7 +352,7 @@ class CompilationEngine:
                 segment = self.symbol_table.KindOf(name)
                 index = self.symbol_table.IndexOf(name)
                 self.Tokens.advance()
-                if self.Tokens.symbol() not in ["[", "(", "."]:
+                if self.Tokens.symbol() != "(":
                     self.vm_writer.writePush(segment, index)
                 if self.Tokens.symbol() == "[":
                     ###################################
@@ -362,6 +362,7 @@ class CompilationEngine:
                     if self.Tokens.getToken() not in CompilationEngine.SET:
                         self.compileExpression()
                         if self.Tokens.symbol() == "]":
+                            self.vm_writer.writeArithmatic("add")
                             self.Tokens.advance()
                 elif self.Tokens.symbol() == "(":
                     self.Tokens.advance()
@@ -371,7 +372,6 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    self.vm_writer.writePush(segment, index)
                     name = type
                     name += self.Tokens.getToken()
                     self.Tokens.advance()
