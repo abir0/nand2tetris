@@ -57,13 +57,13 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 var_name = self.Tokens.getToken()
-                self.symbol_table.define(name=var_name, type=var_type, kind=var_kind, kind_flag=True)
+                self.symbol_table.define(name=var_name, type=var_type, kind=var_kind, class_flag=True)
                 self.Tokens.advance()
                 while self.Tokens.symbol() == ",":
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
                         var_name = self.Tokens.getToken()
-                        self.symbol_table.define(name=var_name, type=var_type, kind=var_kind, kind_flag=True)
+                        self.symbol_table.define(name=var_name, type=var_type, kind=var_kind, class_flag=True)
                         self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.Tokens.advance()
@@ -181,7 +181,11 @@ class CompilationEngine:
             elif self.Tokens.keyWord() == "RETURN":
                 self.compileReturn()
 
+    ###########################
+    #### Fix let statement ####
+    ###########################
     def compileLet(self):
+        array_flag = False
         if self.Tokens.keyWord() == "LET":
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
@@ -196,21 +200,25 @@ class CompilationEngine:
                         self.compileExpression()
                         if self.Tokens.symbol() == "]":
                             self.vm_writer.writeArithmatic("add")
-
+                            array_flag = True
                             self.Tokens.advance()
                 if self.Tokens.symbol() == "=":
                     self.Tokens.advance()
                     if self.Tokens.symbol() != ";":
                         self.compileExpression()
-                        self.vm_writer.writePop("pointer", "1")
-                        self.vm_writer.writePush("that", "0")
-                        self.vm_writer.writePop("temp", "0")
-                        self.vm_writer.writePop("pointer", "1")
-                        self.vm_writer.writePush("temp", "0")
-                        self.vm_writer.writePop("that", "0")
+                        if array_flag:
+                            self.vm_writer.writePop("pointer", "1")
+                            self.vm_writer.writePush("that", "0")
+                            self.vm_writer.writePop("temp", "0")
+                            self.vm_writer.writePop("pointer", "1")
+                            self.vm_writer.writePush("temp", "0")
+                            self.vm_writer.writePop("that", "0")
                         if self.Tokens.symbol() == ";":
                             self.Tokens.advance()
 
+    ###########################
+    #### Fix do statement #####
+    ###########################
     def compileDo(self):
         if self.Tokens.keyWord() == "DO":
             self.Tokens.advance()
@@ -270,6 +278,9 @@ class CompilationEngine:
                                                 self.Tokens.advance()
                                 self.vm_writer.writeLabel(labels.pop(0))
 
+    ###########################
+    ### Fix while statement ###
+    ###########################
     def compileWhile(self):
         labels = []
         if self.Tokens.keyWord() == "WHILE":
@@ -323,6 +334,9 @@ class CompilationEngine:
                             self.vm_writer.writeCall(command, "2")
 
 
+    ###########################
+    #### Fix term statement ###
+    ###########################
     def compileTerm(self):
         if self.Tokens.getToken() not in CompilationEngine.SET:
             if self.Tokens.tokenType() == "INT_CONST":
@@ -356,6 +370,10 @@ class CompilationEngine:
             elif self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
                 self.Tokens.advance()
+                if self.Tokens.symbol() not in ["[", "(", "."]:
+                    segment = self.symbol_table.KindOf(name)
+                    index = self.symbol_table.IndexOf(name)
+                    self.vm_writer.writePush(segment, str(index))
                 if self.Tokens.symbol() == "[":
                     segment = self.symbol_table.KindOf(name)
                     index = self.symbol_table.IndexOf(name)
