@@ -188,7 +188,7 @@ class CompilationEngine:
                 name = self.Tokens.getToken()
                 segment = self.symbol_table.KindOf(name)
                 index = self.symbol_table.IndexOf(name)
-                self.vm_writer.writePush(segment, index)
+                self.vm_writer.writePush(segment, str(index))
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "[":
                     self.Tokens.advance()
