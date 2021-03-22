@@ -84,10 +84,10 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 func_name = self.Tokens.getToken()
-                try:
-                    kind = self.symbol_table.KindOf(name)
-                except:
+                if name == "function":
                     kind = class_name
+                else:
+                    kind = self.symbol_table.KindOf(func_name)
                 func_name = kind + "." + func_name
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
@@ -329,14 +329,13 @@ class CompilationEngine:
                 self.vm_writer.writePush("constant", self.Tokens.getToken())
                 self.Tokens.advance()
             elif self.Tokens.tokenType() == "STR_CONST":
-                str = self.Tokens.getToken()[1:-1]
-                length = len(str)
-                for i in str:
-                    ##################################
-                    ##### STRING handling needed #####
-                    ##################################
-                    self.vm_writer.writePush("constant", self.Tokens.getToken())
-                    self.vm_writer.writeCall("String.appendChar", "1")
+                string = self.Tokens.getToken()[1:-1]
+                length = len(string)
+                self.vm_writer.writePush("constant", str(length))
+                self.vm_writer.writeCall("String.new", "1")
+                for i in string:
+                    self.vm_writer.writePush("constant", str(ord(i)))
+                    self.vm_writer.writeCall("String.appendChar", "2")
                 self.Tokens.advance()
             elif self.Tokens.getToken() in CompilationEngine.KEYWORD_CONST:
                 ### Keyword constant ###
@@ -356,19 +355,11 @@ class CompilationEngine:
                     self.vm_writer.writeArithmatic(command)
             elif self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
-                type = self.symbol_table.KindOf(name)
-                ######################################
-                ###### SEGMENT_MAP not used!!!! ######
-                ######################################
-                segment = self.symbol_table.KindOf(name)
-                index = self.symbol_table.IndexOf(name)
                 self.Tokens.advance()
-                if self.Tokens.symbol() != "(":
-                    self.vm_writer.writePush(segment, index)
                 if self.Tokens.symbol() == "[":
-                    ###################################
-                    ###### ARRAY handling needed ######
-                    ###################################
+                    segment = self.symbol_table.KindOf(name)
+                    index = self.symbol_table.IndexOf(name)
+                    self.vm_writer.writePush(segment, str(index))
                     self.Tokens.advance()
                     if self.Tokens.getToken() not in CompilationEngine.SET:
                         self.compileExpression()
@@ -383,7 +374,7 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    name = type
+                    name = self.symbol_table.KindOf(name)
                     name += self.Tokens.getToken()
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
