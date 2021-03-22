@@ -186,8 +186,8 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
-                segment = self.symbol_table.KindOf(self, name)
-                index = self.symbol_table.IndexOf(self, name)
+                segment = self.symbol_table.KindOf(name)
+                index = self.symbol_table.IndexOf(name)
                 self.vm_writer.writePush(segment, index)
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "[":
