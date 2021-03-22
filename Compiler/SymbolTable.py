@@ -38,7 +38,10 @@ class SymbolTable:
         try:
             kind = self.subroutine_table[name][1]
         except:
-            kind = self.class_table[name][1]
+            try:
+                kind = self.class_table[name][1]
+            except:
+                kind = name
         return kind
 
     def IndexOf(self, name):
