@@ -42,7 +42,7 @@ class CompilationEngine:
                         self.symbol_table.startSubroutine()
                         if self.Tokens.keyWord() != "FUNCTION":
                             self.symbol_table.define(name='this', kind='argument', type=class_name)
-                        self.compileSubroutineDec()
+                        self.compileSubroutineDec(class_name)
                     if self.Tokens.symbol() == "}":
                         pass
 
@@ -68,13 +68,13 @@ class CompilationEngine:
                 if self.Tokens.symbol() == ";":
                     self.Tokens.advance()
 
-    def compileSubroutineDec(self):
-        count = self.symbol_table.varCount("this", class_flag=True)
+    def compileSubroutineDec(self, class_name):
+        nLocals = self.symbol_table.varCount("this", class_flag=True)
+        if nLocals == -1:
+            nLocals = 0
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
-            ##################################
-            ###### FUNCTION dec needed #######
-            ##################################
-            keyword = self.Tokens.advance()
+            name = self.Tokens.getToken()
+            self.Tokens.advance()
             if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 if self.Tokens.keyWord() == "VOID":
                     ##################################
@@ -83,6 +83,12 @@ class CompilationEngine:
                     pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
+                func_name = self.Tokens.getToken()
+                try:
+                    kind = self.symbol_table.KindOf(name)
+                except:
+                    kind = class_name
+                func_name = kind + "." + func_name
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
                     self.Tokens.advance()
@@ -90,15 +96,19 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
-                            if keyword == "constructor":
+                            if name == "constructor":
+                                self.vm_writer.writeFunction(func_name, str(nLocals))
                                 ### Object construction ###
-                                self.vm_writer.writePush("constant", str(count))
+                                self.vm_writer.writePush("constant", str(nLocals))
                                 self.vm_writer.writeCall("Memory.alloc", "1")
                                 self.vm_writer.writePop("pointer", "0")
-                            elif keyword == "method":
+                            elif name == "method":
+                                self.vm_writer.writeFunction(func_name, str(nLocals))
                                 ### Method construction ###
                                 self.vm_writer.writePush("argument", "0")
                                 self.vm_writer.writePop("pointer", "0")
+                            elif name == "function":
+                                self.vm_writer.writeFunction(func_name, str(nLocals))
                             self.compileSubroutineBody()
 
     def compileParameterList(self):
@@ -225,7 +235,8 @@ class CompilationEngine:
                                 self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.Tokens.advance()
-                    self.vm_writer.writeCall(name, nArgs)
+                    self.vm_writer.writeCall(name, str(nArgs))
+                    self.vm_writer.writePop("temp", "0")
 
     def compileIf(self):
         labels = []
@@ -368,7 +379,7 @@ class CompilationEngine:
                     self.Tokens.advance()
                     ### Subroutine call ###
                     nArgs = self.compileExpressionList()
-                    self.vm_writer.writeCall(name, nArgs)
+                    self.vm_writer.writeCall(name, str(nArgs))
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
@@ -384,7 +395,7 @@ class CompilationEngine:
                             if self.Tokens.symbol() == ")":
                                 self.Tokens.advance()
                                 ### Class.Subroutine call ###
-                                self.vm_writer.writeCall(name, nArgs)
+                                self.vm_writer.writeCall(name, str(nArgs))
             elif self.Tokens.symbol() == "(":
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
@@ -402,7 +413,7 @@ class CompilationEngine:
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileExpression()
                     count += 1
-        return str(count)
+        return count
 
     def generateLabel(self):
         self.label += 1

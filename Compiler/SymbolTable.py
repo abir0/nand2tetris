@@ -22,9 +22,10 @@ class SymbolTable:
 
     def varCount(self, kind, class_flag=False):
         if class_flag:
-            return self.index_class.get(kind, -1)
+            index = self.index_class.get(kind, -1)
         else:
-            return self.index_subroutine.get(kind, -1)
+            index = self.index_subroutine.get(kind, -1)
+        return index
 
     def TypeOf(self, name):
         try:
