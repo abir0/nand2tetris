@@ -47,7 +47,7 @@ class CompilationEngine:
                             self.symbol_table.define(name='this', kind='argument', type=class_name)
                         self.compileSubroutineDec(class_name)
                     if self.Tokens.symbol() == "}":
-                        pass
+                        print("Compiled {} class successfully".format(class_name))
 
 
     def compileClassVarDec(self):
@@ -74,11 +74,8 @@ class CompilationEngine:
 
 
     def compileSubroutineDec(self, class_name):
-        #########################
-        ###       Types       ###
-        #########################
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
-            name = self.Tokens.getToken()
+            func_type = self.Tokens.getToken()
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 if self.Tokens.keyWord() == "VOID":
@@ -88,15 +85,8 @@ class CompilationEngine:
                     pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
-                #########################
-                ###       Types       ###
-                #########################
                 func_name = self.Tokens.getToken()
-                if name == "function":
-                    kind = class_name
-                else:
-                    kind = self.symbol_table.TypeOf(func_name)
-                func_name = kind + "." + func_name
+                func_name = class_name + "." + func_name
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
                     self.Tokens.advance()
@@ -104,17 +94,13 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
-                            self.compileSubroutineBody(func_name)
+                            self.compileSubroutineBody(func_type, func_name)
 
 
     def compileParameterList(self):
         if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
             var_kind = self.SEGMENT_MAP["arg"]   # variable kind
             var_type = self.Tokens.getToken()   # variable type
-            if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                pass
-            elif self.Tokens.tokenType() == "IDENTIFIER":
-                pass
             self.Tokens.advance()
         if self.Tokens.tokenType() == "IDENTIFIER":
             var_name = self.Tokens.getToken()   # variable name
@@ -124,8 +110,6 @@ class CompilationEngine:
                 self.Tokens.advance()
                 if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                     var_type = self.Tokens.getToken()
-                    if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                        pass
                 self.Tokens.advance()
                 if self.Tokens.tokenType() == "IDENTIFIER":
                     var_name = self.Tokens.getToken()
@@ -133,25 +117,26 @@ class CompilationEngine:
                     self.Tokens.advance()
 
 
-    #########################
-    ###       Types       ###
-    #########################
-    def compileSubroutineBody(self, func_name):
+    def compileSubroutineBody(self, func_type, func_name):
         if self.Tokens.symbol() == "{":
             self.Tokens.advance()
             count = 0
             while self.Tokens.keyWord() == "VAR":
                 count += self.compileVarDec()
-            self.vm_writer.writeFunction(func_name, str(nLocals))
-            if name == "constructor":
+            nLocals = count
+            if func_type == "constructor":
+                self.vm_writer.writeFunction(func_name, str(nLocals))
                 ### Object construction ###
                 self.vm_writer.writePush("constant", str(nLocals))
                 self.vm_writer.writeCall("Memory.alloc", "1")
                 self.vm_writer.writePop("pointer", "0")
-            elif name == "method":
+            elif func_type == "method":
+                self.vm_writer.writeFunction(func_name, str(nLocals + 1))
                 ### Method construction ###
                 self.vm_writer.writePush("argument", "0")
                 self.vm_writer.writePop("pointer", "0")
+            elif func_type == "function":
+                self.vm_writer.writeFunction(func_name, str(nLocals))
             if self.Tokens.keyWord() in ["LET", "DO", "IF", "WHILE", "RETURN"]:
                 self.compileStatements()
             if self.Tokens.symbol() == "}":
@@ -165,8 +150,6 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
-                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                    pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 var_name = self.Tokens.getToken()
