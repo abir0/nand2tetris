@@ -49,6 +49,9 @@ class Tokenizer:
         str_flag = False
         for char in str(file_data):
             if char in Tokenizer.SYMBOLS:
+                if str_flag:
+                    token += char
+                    continue
                 self.tokens.append(token.strip())
                 self.tokens.append(char)
                 token = ""
