@@ -35,7 +35,7 @@ class CompilationEngine:
         if self.Tokens.keyWord() == "CLASS":
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
-                class_name = self.Tokens.getToken()
+                self.class_name = self.Tokens.getToken()
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "{":
                     self.Tokens.advance()
@@ -43,11 +43,11 @@ class CompilationEngine:
                         self.compileClassVarDec()
                     while self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
                         self.symbol_table.startSubroutine()
-                        if self.Tokens.keyWord() != "FUNCTION":
-                            self.symbol_table.define(name='this', kind='argument', type=class_name)
-                        self.compileSubroutineDec(class_name)
+                        if self.Tokens.keyWord() == "METHOD":
+                            self.symbol_table.define(name='this', kind='argument', type=self.class_name)
+                        self.compileSubroutineDec()
                     if self.Tokens.symbol() == "}":
-                        print("Compiled {} class successfully".format(class_name))
+                        print("Compiled {} class successfully".format(self.class_name))
 
 
     def compileClassVarDec(self):
@@ -56,8 +56,6 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
-                if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"]:
-                    pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 var_name = self.Tokens.getToken()
@@ -73,20 +71,20 @@ class CompilationEngine:
                     self.Tokens.advance()
 
 
-    def compileSubroutineDec(self, class_name):
+    def compileSubroutineDec(self):
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
             func_type = self.Tokens.getToken()
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["VOID", "INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 if self.Tokens.keyWord() == "VOID":
-                    ##################################
-                    ###### VOID type handling  #######
-                    ##################################
+                    ###########################
+                    ### VOID type handling  ###
+                    ###########################
                     pass
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 func_name = self.Tokens.getToken()
-                func_name = class_name + "." + func_name
+                func_name = self.class_name + "." + func_name
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
                     self.Tokens.advance()
@@ -127,11 +125,12 @@ class CompilationEngine:
             if func_type == "constructor":
                 self.vm_writer.writeFunction(func_name, str(nLocals))
                 ### Object construction ###
-                self.vm_writer.writePush("constant", str(nLocals))
+                nArgs = self.symbol_table.varCount("this", class_flag=True)
+                self.vm_writer.writePush("constant", str(nArgs))
                 self.vm_writer.writeCall("Memory.alloc", "1")
                 self.vm_writer.writePop("pointer", "0")
             elif func_type == "method":
-                self.vm_writer.writeFunction(func_name, str(nLocals + 1))
+                self.vm_writer.writeFunction(func_name, str(nLocals))
                 ### Method construction ###
                 self.vm_writer.writePush("argument", "0")
                 self.vm_writer.writePop("pointer", "0")
@@ -220,14 +219,25 @@ class CompilationEngine:
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
+                method_call = False
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
                     self.Tokens.advance()
+                    name = self.class_name + "." + name
+                    method_call = True
+                    self.vm_writer.writePush("pointer", "0")
                     nArgs = self.compileExpressionList()
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    name += "."
+                    segment = self.symbol_table.KindOf(name)
+                    if segment == "this":
+                        index = self.symbol_table.IndexOf(name)
+                        self.vm_writer.writePush(segment, str(index))
+                        method_call = True
+                        self.vm_writer.writePush("pointer", "0")
+                    name = self.symbol_table.TypeOf(name)
+                    name += self.Tokens.getToken()
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
                         name +=  self.Tokens.getToken()
@@ -239,7 +249,10 @@ class CompilationEngine:
                                 self.Tokens.advance()
                 if self.Tokens.symbol() == ";":
                     self.Tokens.advance()
-                    self.vm_writer.writeCall(name, str(nArgs))
+                    if method_call:
+                        self.vm_writer.writeCall(name, str(nArgs + 1))
+                    else:
+                        self.vm_writer.writeCall(name, str(nArgs))
                     self.vm_writer.writePop("temp", "0")
 
 
@@ -352,8 +365,8 @@ class CompilationEngine:
                 elif self.Tokens.getToken() in ["false", "null"]:
                     self.vm_writer.writePush("constant", "0")
                 elif self.Tokens.getToken() == "true":
-                    self.vm_writer.writePush("constant", "1")
-                    self.vm_writer.writeArithmatic("neg")
+                    self.vm_writer.writePush("constant", "0")
+                    self.vm_writer.writeArithmatic("not")
                 self.Tokens.advance()
             elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
                 command = self.UNARY_MAP[self.Tokens.getToken()]
@@ -388,6 +401,13 @@ class CompilationEngine:
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
+                    method_call = False
+                    segment = self.symbol_table.KindOf(name)
+                    if segment == "this":
+                        index = self.symbol_table.IndexOf(name)
+                        self.vm_writer.writePush(segment, str(index))
+                        method_call = True
+                        self.vm_writer.writePush("pointer", "0")
                     name = self.symbol_table.TypeOf(name)
                     name += self.Tokens.getToken()
                     self.Tokens.advance()
@@ -400,7 +420,10 @@ class CompilationEngine:
                             if self.Tokens.symbol() == ")":
                                 self.Tokens.advance()
                                 ### Class.Subroutine call ###
-                                self.vm_writer.writeCall(name, str(nArgs))
+                                if method_call:
+                                    self.vm_writer.writeCall(name, str(nArgs + 1))
+                                else:
+                                    self.vm_writer.writeCall(name, str(nArgs))
             elif self.Tokens.symbol() == "(":
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
