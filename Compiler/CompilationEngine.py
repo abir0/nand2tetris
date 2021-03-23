@@ -7,7 +7,9 @@ class CompilationEngine:
 
     ARITHMATIC_MAP = {"+" : "add", "-" : "sub", "*" : "Math.multiply",
                   "/" : "Math.divide", "&" : "and", "|" : "or", "<" : "lt",
-                  ">" : "gt", "=" : "eq", "-" : "neg", "~" : "not"}
+                  ">" : "gt", "=" : "eq", "-" : "sub"}
+
+    UNARY_MAP = {"-" : "neg", "~" : "not"}
 
     SEGMENT_MAP = {"field" : "this", "static" : "static", "var" : "local", "arg" : "argument"}
 
@@ -363,7 +365,7 @@ class CompilationEngine:
                     self.vm_writer.writeArithmatic("neg")
                 self.Tokens.advance()
             elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
-                command = self.ARITHMATIC_MAP[self.Tokens.getToken()]
+                command = self.UNARY_MAP[self.Tokens.getToken()]
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
                     self.compileTerm()
