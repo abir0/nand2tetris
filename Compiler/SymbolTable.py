@@ -33,17 +33,17 @@ class SymbolTable:
         try:
             type = self.subroutine_table[name][0]
         except:
-            type = self.class_table[name][0]
+            try:
+                type = self.class_table[name][0]
+            except:
+                type = name
         return type
 
     def KindOf(self, name):
         try:
             kind = self.subroutine_table[name][1]
         except:
-            try:
-                kind = self.class_table[name][1]
-            except:
-                kind = name
+            kind = self.class_table[name][1]
         return kind
 
     def IndexOf(self, name):
