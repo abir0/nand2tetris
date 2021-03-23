@@ -16,7 +16,7 @@ class SymbolTable:
         if class_flag:
             index = self.varCount(kind, class_flag=True) + 1
             self.index_class[kind] = index
-            self.subroutine_table[name] = (type, kind, index)
+            self.class_table[name] = (type, kind, index)
         else:
             index = self.varCount(kind, class_flag=False) + 1
             self.index_subroutine[kind] = index
