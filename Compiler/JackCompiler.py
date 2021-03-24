@@ -21,8 +21,6 @@ class Compiler:
             E = CompilationEngine(tokens=T, vm_writer=V, symbol_table=S, verbose=verbose)
             E.compileClass()
             V.close()
-            print(S.class_table)
-            print(S.subroutine_table)
 
     @staticmethod
     def get_filenames(path):
