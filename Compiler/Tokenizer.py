@@ -7,8 +7,10 @@ import re
 class Tokenizer:
     """Jack Tokenizer class."""
 
+    # Keywords and symbols in jack language
     KEYWORDS = ["class", "constructor", "function", "method", "field", "static", "var", "int", "char",
                 "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"]
+
     SYMBOLS = ["{", "}", "(", ")", "[", "]", ".", ",", ";",
                "+", "-", "*", "/", "~", "&", "|", "<", ">", "="]
 
@@ -181,4 +183,3 @@ if __name__ == "__main__":
     T = Tokenizer(sys.argv[1], verbose)
     T.tokenize()
     T.writeTokens(verbose)
-    del T

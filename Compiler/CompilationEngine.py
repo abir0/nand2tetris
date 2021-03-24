@@ -5,18 +5,21 @@ from SymbolTable import SymbolTable
 class CompilationEngine:
 
 
+    # Maps arithmatic symbols to corresponding VM command
     ARITHMATIC_MAP = {"+" : "add", "-" : "sub", "*" : "Math.multiply",
                   "/" : "Math.divide", "&" : "and", "|" : "or", "<" : "lt",
                   ">" : "gt", "=" : "eq", "-" : "sub"}
 
     UNARY_MAP = {"-" : "neg", "~" : "not"}
 
+    # Jack operators and keyword constants
     BINARY_OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
 
     UNARY_OP = ["-", "~"]
 
     KEYWORD_CONST = ["true", "false", "null", "this"]
 
+    # This set includes all keywords and symbols except those above
     SET = set(Tokenizer.KEYWORDS + Tokenizer.SYMBOLS) - set(["("] + UNARY_OP + BINARY_OP + KEYWORD_CONST)
 
 
@@ -24,11 +27,12 @@ class CompilationEngine:
         self.Tokens = tokens
         self.vm_writer = vm_writer
         self.symbol_table = symbol_table
-        self.label = 0
+        self.label = 0  # for unique label generation
         self.verbose = verbose
 
 
     def compileClass(self):
+        """Compile Jack class and generate code from top to down."""
         self.Tokens.advance()
         if self.Tokens.keyWord() == "CLASS":
             self.Tokens.advance()
@@ -49,6 +53,7 @@ class CompilationEngine:
 
 
     def compileClassVarDec(self):
+        """Compile class variable declaration and update symbol table."""
         if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
             var_kind = self.Tokens.getToken().replace("field", "this")
             self.Tokens.advance()
@@ -70,6 +75,7 @@ class CompilationEngine:
 
 
     def compileSubroutineDec(self):
+        """Compile subroutine declaration and generate code top to down."""
         if self.Tokens.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
             func_type = self.Tokens.getToken()
             self.Tokens.advance()
@@ -94,6 +100,7 @@ class CompilationEngine:
 
 
     def compileParameterList(self):
+        """Compile subroutine parameter list and update symbol table."""
         if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
             var_kind = "argument"   # variable kind
             var_type = self.Tokens.getToken()   # variable type
@@ -114,6 +121,7 @@ class CompilationEngine:
 
 
     def compileSubroutineBody(self, func_type, func_name):
+        """Compile subroutine body section and generate code."""
         if self.Tokens.symbol() == "{":
             self.Tokens.advance()
             count = 0
@@ -141,6 +149,7 @@ class CompilationEngine:
 
 
     def compileVarDec(self):
+        """Compile local variable declaration list and update symbol table."""
         count = 0
         if self.Tokens.keyWord() == "VAR":
             var_kind = "local"
@@ -166,6 +175,7 @@ class CompilationEngine:
 
 
     def compileStatements(self):
+        """Compile statements and generate code recursively."""
         while self.Tokens.keyWord() in ["LET", "DO", "IF", "WHILE", "RETURN"]:
             if self.Tokens.keyWord() == "LET":
                 self.compileLet()
@@ -180,6 +190,7 @@ class CompilationEngine:
 
 
     def compileLet(self):
+        """Compile let statement and generate code."""
         array_flag = False
         if self.Tokens.keyWord() == "LET":
             self.Tokens.advance()
@@ -213,6 +224,7 @@ class CompilationEngine:
 
 
     def compileDo(self):
+        """Compile do statement and generate code."""
         if self.Tokens.keyWord() == "DO":
             self.Tokens.advance()
             if self.Tokens.tokenType() == "IDENTIFIER":
@@ -254,6 +266,7 @@ class CompilationEngine:
 
 
     def compileIf(self):
+        """Compile if statement and generate code recursively."""
         labels = []
         if self.Tokens.keyWord() == "IF":
             self.Tokens.advance()
@@ -287,6 +300,7 @@ class CompilationEngine:
 
 
     def compileWhile(self):
+        """Compile while statement and generate code recursively."""
         labels = []
         if self.Tokens.keyWord() == "WHILE":
             self.Tokens.advance()
@@ -312,6 +326,7 @@ class CompilationEngine:
 
 
     def compileReturn(self):
+        """Compile return statement and generate code."""
         if self.Tokens.keyWord() == "RETURN":
             self.Tokens.advance()
             if self.Tokens.symbol() != ";":
@@ -324,6 +339,7 @@ class CompilationEngine:
 
 
     def compileExpression(self):
+        """Compile expression and generate code recursively."""
         if self.Tokens.getToken() not in CompilationEngine.SET:
             self.compileTerm()
             while self.Tokens.getToken() not in CompilationEngine.SET:
@@ -342,6 +358,7 @@ class CompilationEngine:
 
 
     def compileTerm(self):
+        """Compile term and generate code recursively."""
         if self.Tokens.getToken() not in CompilationEngine.SET:
             if self.Tokens.tokenType() == "INT_CONST":
                 self.vm_writer.writePush("constant", self.Tokens.getToken())
@@ -430,6 +447,7 @@ class CompilationEngine:
 
 
     def compileExpressionList(self):
+        """Compile expression list and generate code recursively."""
         count = 0
         if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
             self.compileExpression()
@@ -443,6 +461,7 @@ class CompilationEngine:
 
 
     def generateLabel(self):
+        """Generate unique labels for if and while statements."""
         self.label += 1
         return "L" + str(self.label)
 

@@ -12,6 +12,7 @@ class Compiler:
         self.filenames = self.get_filenames(path)
 
     def compileFiles(self):
+        """Compile each file in the given directory using all modules and generate code."""
         verbose = self.parse_arg()
         for filename in self.filenames:
             V = VMWriter(filename, verbose=verbose)

@@ -9,10 +9,12 @@ class SymbolTable:
         self.index_subroutine = dict()
 
     def startSubroutine(self):
+        """Reset subroutine table."""
         self.subroutine_table = dict()
         self.index_subroutine = dict()
 
     def define(self, name, type, kind, class_flag=False):
+        """Define an entry in one of the the tables."""
         if class_flag:
             index = self.varCount(kind, class_flag=True)
             self.index_class[kind] = index
@@ -23,6 +25,7 @@ class SymbolTable:
             self.subroutine_table[name] = (type, kind, index)
 
     def varCount(self, kind, class_flag=False):
+        """Return the count of a kind."""
         if class_flag:
             index = self.index_class.get(kind, -1) + 1
         else:
@@ -30,6 +33,7 @@ class SymbolTable:
         return index
 
     def TypeOf(self, name):
+        """Return the type of an entry."""
         try:
             type = self.subroutine_table[name][0]
         except:
@@ -40,6 +44,7 @@ class SymbolTable:
         return type
 
     def KindOf(self, name):
+        """Return the kind of an entry."""
         try:
             kind = self.subroutine_table[name][1]
         except:
@@ -50,6 +55,7 @@ class SymbolTable:
         return kind
 
     def IndexOf(self, name):
+        """Return the index of an entry."""
         try:
             index = self.subroutine_table[name][2]
         except:
