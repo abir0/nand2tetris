@@ -208,7 +208,7 @@ class CompilationEngine:
                             self.vm_writer.writePop("that", "0")
                         else:
                             self.vm_writer.writePop(segment, str(index))
-                            self.vm_writer.writePush(segment, str(index))
+                            #self.vm_writer.writePush(segment, str(index))
                         if self.Tokens.symbol() == ";":
                             self.Tokens.advance()
 
