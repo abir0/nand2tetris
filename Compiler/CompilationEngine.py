@@ -27,7 +27,7 @@ class CompilationEngine:
         self.Tokens = tokens
         self.vm_writer = vm_writer
         self.symbol_table = symbol_table
-        self.label = 0  # for unique label generation
+        self.label = -1  # for unique label generation
         self.verbose = verbose
 
 
@@ -280,7 +280,7 @@ class CompilationEngine:
                         if self.Tokens.symbol() == "{":
                             self.Tokens.advance()
                             if self.Tokens.symbol() != "}":
-                                labels.append(self.generateLabel())
+                                labels.append(self.generateLabel("IF_TRUE"))
                                 self.vm_writer.writeIf(labels[-1])
                                 self.compileStatements()
                                 if self.Tokens.symbol() == "}":
@@ -290,7 +290,7 @@ class CompilationEngine:
                                     if self.Tokens.symbol() == "{":
                                         self.Tokens.advance()
                                         if self.Tokens.symbol() != "}":
-                                            labels.append(self.generateLabel())
+                                            labels.append(self.generateLabel("IF_FALSE"))
                                             self.vm_writer.writeGoto(labels[-1])
                                             self.vm_writer.writeLabel(labels.pop(0))
                                             self.compileStatements()
@@ -307,7 +307,7 @@ class CompilationEngine:
             if self.Tokens.symbol() == "(":
                 self.Tokens.advance()
                 if self.Tokens.symbol() != ")":
-                    labels.append(self.generateLabel())
+                    labels.append(self.generateLabel("WHILE_EXP"))
                     self.vm_writer.writeLabel(labels[-1])
                     self.compileExpression()
                     self.vm_writer.writeArithmatic("not")
@@ -316,7 +316,7 @@ class CompilationEngine:
                         if self.Tokens.symbol() == "{":
                             self.Tokens.advance()
                             if self.Tokens.symbol() != "}":
-                                labels.append(self.generateLabel())
+                                labels.append(self.generateLabel("WHILE_END"))
                                 self.vm_writer.writeIf(labels[-1])
                                 self.compileStatements()
                                 self.vm_writer.writeGoto(labels.pop(0))
@@ -460,10 +460,10 @@ class CompilationEngine:
         return count
 
 
-    def generateLabel(self):
+    def generateLabel(self, prefix):
         """Generate unique labels for if and while statements."""
         self.label += 1
-        return "L" + str(self.label)
+        return prefix + str(self.label)
 
 
 if __name__ == "__main__":
