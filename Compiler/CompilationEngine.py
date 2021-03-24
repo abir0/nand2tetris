@@ -11,8 +11,6 @@ class CompilationEngine:
 
     UNARY_MAP = {"-" : "neg", "~" : "not"}
 
-    SEGMENT_MAP = {"field" : "this", "static" : "static", "var" : "local", "arg" : "argument"}
-
     BINARY_OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
 
     UNARY_OP = ["-", "~"]
@@ -52,7 +50,7 @@ class CompilationEngine:
 
     def compileClassVarDec(self):
         if self.Tokens.keyWord() in ["STATIC", "FIELD"]:
-            var_kind = self.SEGMENT_MAP[self.Tokens.getToken()]
+            var_kind = self.Tokens.getToken().replace("field", "this")
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
@@ -97,7 +95,7 @@ class CompilationEngine:
 
     def compileParameterList(self):
         if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
-            var_kind = self.SEGMENT_MAP["arg"]   # variable kind
+            var_kind = "argument"   # variable kind
             var_type = self.Tokens.getToken()   # variable type
             self.Tokens.advance()
         if self.Tokens.tokenType() == "IDENTIFIER":
@@ -145,7 +143,7 @@ class CompilationEngine:
     def compileVarDec(self):
         count = 0
         if self.Tokens.keyWord() == "VAR":
-            var_kind = self.SEGMENT_MAP[self.Tokens.getToken()]
+            var_kind = "local"
             self.Tokens.advance()
             if self.Tokens.keyWord() in ["INT", "CHAR", "BOOLEAN"] or self.Tokens.tokenType() == "IDENTIFIER":
                 var_type = self.Tokens.getToken()
@@ -210,6 +208,7 @@ class CompilationEngine:
                             self.vm_writer.writePop("that", "0")
                         else:
                             self.vm_writer.writePop(segment, str(index))
+                            self.vm_writer.writePush(segment, str(index))
                         if self.Tokens.symbol() == ";":
                             self.Tokens.advance()
 
@@ -223,24 +222,23 @@ class CompilationEngine:
                 self.Tokens.advance()
                 if self.Tokens.symbol() == "(":
                     self.Tokens.advance()
-                    name = self.class_name + "." + name
+                    func_name = self.class_name + "." + name
                     method_call = True
                     self.vm_writer.writePush("pointer", "0")
                     nArgs = self.compileExpressionList()
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
-                    segment = self.symbol_table.KindOf(name)
-                    if segment == "this":
+                    func_name = self.symbol_table.TypeOf(name)
+                    method_call = False
+                    if name != func_name:
+                        segment = self.symbol_table.KindOf(name)
                         index = self.symbol_table.IndexOf(name)
                         self.vm_writer.writePush(segment, str(index))
                         method_call = True
-                        self.vm_writer.writePush("pointer", "0")
-                    name = self.symbol_table.TypeOf(name)
-                    name += self.Tokens.getToken()
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
-                        name +=  self.Tokens.getToken()
+                        func_name = func_name + "." +  self.Tokens.getToken()
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "(":
                             self.Tokens.advance()
@@ -250,9 +248,9 @@ class CompilationEngine:
                 if self.Tokens.symbol() == ";":
                     self.Tokens.advance()
                     if method_call:
-                        self.vm_writer.writeCall(name, str(nArgs + 1))
+                        self.vm_writer.writeCall(func_name, str(nArgs + 1))
                     else:
-                        self.vm_writer.writeCall(name, str(nArgs))
+                        self.vm_writer.writeCall(func_name, str(nArgs))
                     self.vm_writer.writePop("temp", "0")
 
 
@@ -396,23 +394,23 @@ class CompilationEngine:
                 elif self.Tokens.symbol() == "(":
                     self.Tokens.advance()
                     ### Subroutine call ###
+                    func_name = self.class_name + "." + name
                     nArgs = self.compileExpressionList()
-                    self.vm_writer.writeCall(name, str(nArgs))
+                    self.vm_writer.writeCall(func_name, str(nArgs))
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
                 elif self.Tokens.symbol() == ".":
+                    func_name = self.symbol_table.TypeOf(name)
                     method_call = False
-                    segment = self.symbol_table.KindOf(name)
-                    if segment == "this":
+                    if name != func_name:
+                        segment = self.symbol_table.KindOf(name)
                         index = self.symbol_table.IndexOf(name)
                         self.vm_writer.writePush(segment, str(index))
                         method_call = True
-                        self.vm_writer.writePush("pointer", "0")
-                    name = self.symbol_table.TypeOf(name)
-                    name += self.Tokens.getToken()
+                        #self.vm_writer.writePush("pointer", "0")
                     self.Tokens.advance()
                     if self.Tokens.tokenType() == "IDENTIFIER":
-                        name += self.Tokens.getToken()
+                        func_name = func_name + "." +  self.Tokens.getToken()
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "(":
                             self.Tokens.advance()
@@ -421,9 +419,9 @@ class CompilationEngine:
                                 self.Tokens.advance()
                                 ### Class.Subroutine call ###
                                 if method_call:
-                                    self.vm_writer.writeCall(name, str(nArgs + 1))
+                                    self.vm_writer.writeCall(func_name, str(nArgs + 1))
                                 else:
-                                    self.vm_writer.writeCall(name, str(nArgs))
+                                    self.vm_writer.writeCall(func_name, str(nArgs))
             elif self.Tokens.symbol() == "(":
                 self.Tokens.advance()
                 if self.Tokens.getToken() not in CompilationEngine.SET:
