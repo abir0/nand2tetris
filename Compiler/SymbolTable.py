@@ -3,15 +3,15 @@
 class SymbolTable:
 
     def __init__(self):
-        self.class_table = dict()
-        self.subroutine_table = dict()
-        self.index_class = dict()
-        self.index_subroutine = dict()
+        self.class_table = {}
+        self.subroutine_table = {}
+        self.index_class = {}
+        self.index_subroutine = {}
 
     def startSubroutine(self):
         """Reset subroutine table."""
-        self.subroutine_table = dict()
-        self.index_subroutine = dict()
+        self.subroutine_table = {}
+        self.index_subroutine = {}
 
     def define(self, name, type, kind, class_flag=False):
         """Define an entry in one of the the tables."""

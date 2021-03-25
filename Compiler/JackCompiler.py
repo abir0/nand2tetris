@@ -13,15 +13,18 @@ class Compiler:
 
     def compileFiles(self):
         """Compile each file in the given directory using all modules and generate code."""
-        verbose = self.parse_arg()
+        verbose = self.parse_arg(sys.argv[2])
         for filename in self.filenames:
-            V = VMWriter(filename, verbose=verbose)
-            T = Tokenizer(filename)
-            S = SymbolTable()
-            T.tokenize()
-            E = CompilationEngine(tokens=T, vm_writer=V, symbol_table=S, verbose=verbose)
-            E.compileClass()
-            V.close()
+            vm_writer = VMWriter(filename, verbose=verbose)
+            tokenizer = Tokenizer(filename)
+            symbol_table = SymbolTable()
+            tokenizer.tokenize()
+            engine = CompilationEngine(tokens=tokenizer,
+                                       vm_writer=vm_writer,
+                                       symbol_table=symbol_table,
+                                       verbose=verbose)
+            engine.compileClass()
+            vm_writer.close()
 
     @staticmethod
     def get_filenames(path):
@@ -36,18 +39,16 @@ class Compiler:
         return filenames
 
     @staticmethod
-    def parse_arg():
+    def parse_arg(arg):
         """Parse the CLI argument."""
         try:
-            verbose = sys.argv[2]
-            if verbose == "--verbose" or verbose == "-v":
+            verbose = False
+            if arg == "--verbose" or arg == "-v":
                 verbose = True
-            else:
-                verbose = False
         except:
             verbose = False
         return verbose
 
 if __name__ == "__main__":
-    C = Compiler(sys.argv[1])
-    C.compileFiles()
+    compiler = Compiler(sys.argv[1])
+    compiler.compileFiles()

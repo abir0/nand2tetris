@@ -121,9 +121,3 @@ class Tokenizer:
     def stringVal(self):
         if self.tokenType() == "STR_CONST":
             return str(self.token[1:-1])
-
-
-if __name__ == "__main__":
-
-    T = Tokenizer(sys.argv[1])
-    T.tokenize()

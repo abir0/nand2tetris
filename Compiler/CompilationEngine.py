@@ -464,14 +464,3 @@ class CompilationEngine:
         """Generate unique labels for if and while statements."""
         self.label += 1
         return prefix + str(self.label)
-
-
-if __name__ == "__main__":
-
-    V = VMWriter(filename)
-    T = Tokenizer(filename)
-    T.tokenize()
-    S = SymbolTable()
-    E = CompilationEngine(tokens=T, vm_writer=V, symbol_table=S)
-    E.compileClass()
-    V.close()
