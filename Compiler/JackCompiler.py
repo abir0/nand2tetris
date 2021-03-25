@@ -16,7 +16,7 @@ class Compiler:
         verbose = self.parse_arg()
         for filename in self.filenames:
             V = VMWriter(filename, verbose=verbose)
-            T = Tokenizer(filename, verbose=verbose)
+            T = Tokenizer(filename)
             S = SymbolTable()
             T.tokenize()
             E = CompilationEngine(tokens=T, vm_writer=V, symbol_table=S, verbose=verbose)
