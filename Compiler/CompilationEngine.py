@@ -340,16 +340,16 @@ class CompilationEngine:
 
     def compileExpression(self):
         """Compile expression and generate code recursively."""
-        if self.Tokens.getToken() not in CompilationEngine.SET:
+        if self.Tokens.getToken() not in self.SET:
             self.compileTerm()
-            while self.Tokens.getToken() not in CompilationEngine.SET:
-                if self.Tokens.symbol() in CompilationEngine.BINARY_OP:
+            while self.Tokens.getToken() not in self.SET:
+                if self.Tokens.symbol() in self.BINARY_OP:
                     call = False
                     if self.Tokens.getToken() in ["*", "/"]:
                         call = True
                     command = self.ARITHMATIC_MAP[self.Tokens.getToken()]
                     self.Tokens.advance()
-                    if self.Tokens.getToken() not in CompilationEngine.SET:
+                    if self.Tokens.getToken() not in self.SET:
                         self.compileTerm()
                         if not call:
                             self.vm_writer.writeArithmatic(command)
@@ -359,7 +359,7 @@ class CompilationEngine:
 
     def compileTerm(self):
         """Compile term and generate code recursively."""
-        if self.Tokens.getToken() not in CompilationEngine.SET:
+        if self.Tokens.getToken() not in self.SET:
             if self.Tokens.tokenType() == "INT_CONST":
                 self.vm_writer.writePush("constant", self.Tokens.getToken())
                 self.Tokens.advance()
@@ -372,7 +372,7 @@ class CompilationEngine:
                     self.vm_writer.writePush("constant", str(ord(i)))
                     self.vm_writer.writeCall("String.appendChar", "2")
                 self.Tokens.advance()
-            elif self.Tokens.getToken() in CompilationEngine.KEYWORD_CONST:
+            elif self.Tokens.getToken() in self.KEYWORD_CONST:
                 ### Keyword constant ###
                 if self.Tokens.getToken() == "this":
                     self.vm_writer.writePush("pointer", "0")
@@ -382,25 +382,21 @@ class CompilationEngine:
                     self.vm_writer.writePush("constant", "0")
                     self.vm_writer.writeArithmatic("not")
                 self.Tokens.advance()
-            elif self.Tokens.symbol() in CompilationEngine.UNARY_OP:
+            elif self.Tokens.symbol() in self.UNARY_OP:
                 command = self.UNARY_MAP[self.Tokens.getToken()]
                 self.Tokens.advance()
-                if self.Tokens.getToken() not in CompilationEngine.SET:
+                if self.Tokens.getToken() not in self.SET:
                     self.compileTerm()
                     self.vm_writer.writeArithmatic(command)
             elif self.Tokens.tokenType() == "IDENTIFIER":
                 name = self.Tokens.getToken()
                 self.Tokens.advance()
-                if self.Tokens.symbol() not in ["[", "(", "."]:
-                    segment = self.symbol_table.KindOf(name)
-                    index = self.symbol_table.IndexOf(name)
-                    self.vm_writer.writePush(segment, str(index))
                 if self.Tokens.symbol() == "[":
-                    segment = self.symbol_table.KindOf(name)
-                    index = self.symbol_table.IndexOf(name)
                     self.Tokens.advance()
-                    if self.Tokens.getToken() not in CompilationEngine.SET:
+                    if self.Tokens.getToken() not in self.SET:
                         self.compileExpression()
+                        segment = self.symbol_table.KindOf(name)
+                        index = self.symbol_table.IndexOf(name)
                         self.vm_writer.writePush(segment, str(index))
                         if self.Tokens.symbol() == "]":
                             self.vm_writer.writeArithmatic("add")
@@ -438,9 +434,13 @@ class CompilationEngine:
                                     self.vm_writer.writeCall(func_name, str(nArgs + 1))
                                 else:
                                     self.vm_writer.writeCall(func_name, str(nArgs))
+                else:
+                    segment = self.symbol_table.KindOf(name)
+                    index = self.symbol_table.IndexOf(name)
+                    self.vm_writer.writePush(segment, str(index))
             elif self.Tokens.symbol() == "(":
                 self.Tokens.advance()
-                if self.Tokens.getToken() not in CompilationEngine.SET:
+                if self.Tokens.getToken() not in self.SET:
                     self.compileExpression()
                     if self.Tokens.symbol() == ")":
                         self.Tokens.advance()
@@ -449,12 +449,12 @@ class CompilationEngine:
     def compileExpressionList(self):
         """Compile expression list and generate code recursively."""
         count = 0
-        if self.Tokens.getToken() not in CompilationEngine.SET and self.Tokens.getToken() != ")":
+        if self.Tokens.getToken() not in self.SET and self.Tokens.getToken() != ")":
             self.compileExpression()
             count += 1
             while self.Tokens.symbol() == ",":
                 self.Tokens.advance()
-                if self.Tokens.getToken() not in CompilationEngine.SET:
+                if self.Tokens.getToken() not in self.SET:
                     self.compileExpression()
                     count += 1
         return count

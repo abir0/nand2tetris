@@ -13,9 +13,10 @@ class Compiler:
 
     def compileFiles(self):
         """Compile each file in the given directory using all modules and generate code."""
-        verbose = self.parse_arg(sys.argv[2])
+        verbose = self.parse_arg(sys.argv)
+
         for filename in self.filenames:
-            vm_writer = VMWriter(filename, verbose=verbose)
+            vm_writer = VMWriter(filename)
             tokenizer = Tokenizer(filename)
             symbol_table = SymbolTable()
             tokenizer.tokenize()
@@ -39,11 +40,11 @@ class Compiler:
         return filenames
 
     @staticmethod
-    def parse_arg(arg):
+    def parse_arg(args):
         """Parse the CLI argument."""
         try:
             verbose = False
-            if arg == "--verbose" or arg == "-v":
+            if "--verbose" in args or "-v" in args:
                 verbose = True
         except:
             verbose = False
