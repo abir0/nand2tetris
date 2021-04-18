@@ -279,24 +279,24 @@ class CompilationEngine:
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
                             self.Tokens.advance()
-                            if self.Tokens.symbol() != "}":
+                            if self.Tokens.getToken() != "}":
                                 labels.append(self.generateLabel("IF_TRUE"))
                                 self.vm_writer.writeIf(labels[-1])
                                 self.compileStatements()
-                                if self.Tokens.symbol() == "}":
+                            if self.Tokens.symbol() == "}":
+                                self.Tokens.advance()
+                            if self.Tokens.keyWord() == "ELSE":
+                                self.Tokens.advance()
+                                if self.Tokens.symbol() == "{":
                                     self.Tokens.advance()
-                                if self.Tokens.keyWord() == "ELSE":
-                                    self.Tokens.advance()
-                                    if self.Tokens.symbol() == "{":
+                                    if self.Tokens.getToken() != "}":
+                                        labels.append(self.generateLabel("IF_FALSE"))
+                                        self.vm_writer.writeGoto(labels[-1])
+                                        self.vm_writer.writeLabel(labels.pop(0))
+                                        self.compileStatements()
+                                    if self.Tokens.symbol() == "}":
                                         self.Tokens.advance()
-                                        if self.Tokens.symbol() != "}":
-                                            labels.append(self.generateLabel("IF_FALSE"))
-                                            self.vm_writer.writeGoto(labels[-1])
-                                            self.vm_writer.writeLabel(labels.pop(0))
-                                            self.compileStatements()
-                                            if self.Tokens.symbol() == "}":
-                                                self.Tokens.advance()
-                                self.vm_writer.writeLabel(labels.pop(0))
+                            self.vm_writer.writeLabel(labels.pop(0))
 
 
     def compileWhile(self):
@@ -315,14 +315,14 @@ class CompilationEngine:
                         self.Tokens.advance()
                         if self.Tokens.symbol() == "{":
                             self.Tokens.advance()
-                            if self.Tokens.symbol() != "}":
+                            if self.Tokens.getToken() != "}":
                                 labels.append(self.generateLabel("WHILE_END"))
                                 self.vm_writer.writeIf(labels[-1])
                                 self.compileStatements()
                                 self.vm_writer.writeGoto(labels.pop(0))
-                                if self.Tokens.symbol() == "}":
-                                    self.Tokens.advance()
-                                    self.vm_writer.writeLabel(labels.pop(0))
+                            if self.Tokens.symbol() == "}":
+                                self.Tokens.advance()
+                                self.vm_writer.writeLabel(labels.pop(0))
 
 
     def compileReturn(self):
