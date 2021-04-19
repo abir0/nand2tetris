@@ -1,0 +1,96 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */
+class Memory {
+
+    // Arrays to map whole ram, heap and free memory segments
+    static Array ram, heap, freeList;
+
+    /** Initializes the class. */
+    function void init() {
+        // Beginning of ram address
+        // by setting this to zero
+        let ram = 0;
+        // Base address of heap
+        let heap = 2048;
+        // At first entire heap is free
+        let freeList = 2048;
+        // First two addresses contain a pointer and length of the freeList
+        let heap[0] = null;
+        let heap[1] = 14335;
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return ram[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let ram[address] = value;
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        var Array block, newBlock;
+        var int next, blockSize;
+
+        let block = freeList;
+        let next = freeList[0];
+        let blockSize = freeList[1];
+        if ((blockSize = (size + 2)) | (blockSize > (size + 2))) {
+            let freeList = freeList + size + 2;
+            let freeList[0] = 0;
+            let freeList[1] = blockSize - size - 2;
+            let block[0] = 0;
+            let block[1] = size;
+            return block + 2;
+        }
+        while (~(next = null)) {
+            let block = next;
+            let next = block[0];
+            let blockSize = block[1];
+            if ((blockSize = (size + 2)) | (blockSize > (size + 2))) {
+                let blockSize = blockSize - size - 2;
+                let block[1] = blockSize;
+                let newBlock = block + blockSize;
+                let newBlock[0] = 0;
+                let newBlock[1] = size;
+                return newBlock + 2;
+            }
+        }
+        return -1;
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        var Array address
+        var int next;
+
+        // Set the first freeList to address
+        let address = freeList;
+        // Get the next list pointer
+        let next = freeList[0];
+        while (~(next = null)) {
+            // If next is not the last element of the list then
+            // set next to address and get the next element...
+            let address = next;
+            let next = address[0];
+        }
+        // At last set the object to the last element of the freeList
+        // this will effectively append it to the freeList
+        let next = o;
+        return;
+    }
+}

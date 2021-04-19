@@ -11,5 +11,4 @@ __pycache__/
 *.hack
 *.asm
 *.vm
-*.jack
 *.xml

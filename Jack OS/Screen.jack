@@ -1,0 +1,220 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Screen.jack
+
+/**
+ * A library of functions for displaying graphics on the screen.
+ * The Hack physical screen consists of 512 rows (indexed 0..511, top to bottom)
+ * of 256 pixels each (indexed 0..255, left to right). The top left pixel on
+ * the screen is indexed (0,0).
+ */
+class Screen {
+
+    static boolean color;
+    static Array bits;
+
+    /** Initializes the Screen. */
+    function void init() {
+        let color = true;
+        let bits = Array.new(16);
+        let bits[0] = 1;
+        let bits[1] = 2;
+        let bits[2] = 4;
+        let bits[3] = 8;
+        let bits[4] = 16;
+        let bits[5] = 32;
+        let bits[6] = 64;
+        let bits[7] = 128;
+        let bits[8] = 256;
+        let bits[9] = 512;
+        let bits[10] = 1024;
+        let bits[11] = 2048;
+        let bits[12] = 4096;
+        let bits[13] = 8192;
+        let bits[14] = 16384;
+        let bits[15] = -32767 - 1;
+        return;
+    }
+
+    /** Erases the entire screen. */
+    function void clearScreen() {
+        var int address;
+
+        // Base address of the screen memory map address
+        let address = 16384;
+        while (address < 24576) {
+            // Poke 0 into each memory address
+            do Memory.poke(address, 0);
+            let address = address + 1;
+        }
+        return;
+    }
+
+    /** Sets the current color, to be used for all subsequent drawXXX commands.
+     *  Black is represented by true, white by false. */
+    function void setColor(boolean b) {
+        let color = b;
+        return;
+
+    }
+
+    /** Draws the (x,y) pixel, using the current color. */
+    function void drawPixel(int x, int y) {
+        var int address, value, i;
+        // Find the screen memory map address
+        let address = (y * 32) + (x / 16);
+        // Get the value from the memory
+        let value = Memory.peek(address + 16384);
+        // Find the ith bit (x % 16)
+        let i = x - ((x / 16) * 16);
+        // Set the pixel value as the color var
+        if (color) {
+            let value = value | bits[i];
+        } else {
+            let value = value & ~(bits[i]);
+        }
+        // Only change the ith bit of the value
+        let value = value | bits[i];
+        // Poke the value into the memory
+        do Memory.poke(address + 16384, value);
+        return;
+    }
+
+    /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+        var int x, y, dx, dy;
+        var int a, b, da, db;
+        var int add1, add2;
+        var int diff;
+        let x = x1;
+        let y = y1;
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+
+        // Special case for horizontal lines as they are contiguous in memory
+        if (dy = 0) {
+            let a = Math.min(x1, x2);
+            let x = a - ((a / 16) * 16);
+            let b = Math.max(x1, x2);
+            let y = b - ((b / 16) * 16);
+            let add1 = (32 * y1) + (a / 16);
+            let add2 = (32 * y1) + (b / 16);
+
+            // If the pixels are so close they are on the same word
+            if (add1 = add2) {
+                let da = 0;
+                while (x < (y + 1)) {
+                    let da = da + bits[x];
+                    let x = x + 1;
+                }
+                let db = Memory.peek(16384 + add1);
+                if (color) {
+                    let db = db | da;
+                } else {
+                    let db = db & ~(da);
+                }
+                do Memory.poke(16384 + add1, db);
+                return;
+            }
+            // Else we do the first word, loop in the middle, do the last word
+            else {
+                // Word add1
+                let da = 0;
+                let dx = a - ((a / 16) * 16);
+                while (dx < 16) {
+                    let da = da + bits[dx];
+                    let dx = dx + 1;
+                }
+                let db = Memory.peek(16384 + add1);
+                if (color) {
+                    let db = db | da;
+                } else {
+                    let db = db & ~(da);
+                }
+                do Memory.poke(16384 + add1, db);
+
+                // Loop for mid words
+                let da = add1 + 1;
+                while (da < add2) {
+                    do Memory.poke(16384 + da, color);
+                    let da = da + 1;
+                }
+
+                // Word add2
+                let da = 0;
+                let dx = b - ((b / 16) * 16);
+                while (dx > -1) {
+                    let da = da + bits[dx];
+                    let dx = dx - 1;
+                }
+                let db = Memory.peek(16384 + add2);
+                if (color) {
+                    let db = db | da;
+                } else {
+                    let db = db & ~(da);
+                }
+                do Memory.poke(16384 + add2, db);
+                return;
+            }
+        }
+
+        if (dx < 0) {
+            let da = -1;
+            let dx = -dx;
+        } else {
+            let da = 1;
+        }
+        if (dy < 0) {
+            let db = -1;
+            let dy = -dy;
+        } else {
+            let db = 1;
+        }
+
+        let a = 0;
+        let b = 0;
+        let diff = 0;
+
+        while ((Math.abs(a) < (dx + 1)) & (Math.abs(b) < (dy + 1))) {
+            do Screen.drawPixel(x+a, y+b);
+
+            if (dx = 0) {
+                let b = b + db;
+            } else {
+                if (diff > 0) {
+                    let b = b + db;
+                    let diff = diff - dx;
+                } else {
+                    let a = a + da;
+                    let diff = diff + dy;
+                }
+            }
+        }
+        return;
+    }
+
+    /** Draws a filled rectangle whose top left corner is (x1, y1)
+     * and bottom right corner is (x2,y2), using the current color. */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int y;
+        let y = y1;
+        while (y < (y2 + 1)) {
+            do Screen.drawLine(x1, y, x2, y);
+            let y = y + 1;
+        }
+        return;
+    }
+
+    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
+    function void drawCircle(int x, int y, int r) {
+        var int dx, dy;
+        let dy = -r;
+        while (dy < (r + 1)) {
+            let dx = Math.sqrt((r * r) - (dy * dy));
+            do Screen.drawLine(x - dx, y + dy, x + dx, y + dy);
+            let dy = dy + 1;
+        }
+        return;
+    }
+}
