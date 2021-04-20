@@ -29,17 +29,17 @@ class Math {
         let bits[12] = 4096;
         let bits[13] = 8192;
         let bits[14] = 16384;
-        let bits[15] = -32767 - 1;
+        let bits[15] = 16384 + 16384;
         return;
     }
 
     /** Returns the binary ith bit of decimal value x. */
-    function int bit(int x, int i) {
-        if ((bits[i] & x) = 0) {
-            return 0;
+    function boolean bit(int x, int i) {
+        if ((x & bits[i]) = 0) {
+            return false;
         }
         else {
-            return 1;
+            return true;
         }
     }
 
@@ -60,11 +60,13 @@ class Math {
      */
     function int multiply(int x, int y) {
         var int i, sum, shiftedX;
+
         let sum = 0;
         let shiftedX = x;
         let i = 0;
+
         while (i < 16) {
-            if (Math.bit(y, i) = 0) {
+            if (Math.bit(y, i)) {
                 let sum = sum + shiftedX;
             }
             let shiftedX = shiftedX + shiftedX;
@@ -79,47 +81,66 @@ class Math {
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
+        var int neg_x, neg_y;
         var int q;
-        if (y > x) {
+        var int result;
+
+        let neg_x = x < 0;
+        let neg_y = y < 0;
+        let x = Math.abs(x);
+        let y = Math.abs(y);
+
+        if( y > x ) {
             return 0;
         }
-        let q = Math.divide(x, 2 * y);
-        if ((x - (2 * q * y)) < y) {
-            return 2 * q;
+        let q = Math.divide(x, y + y);
+        if (x - (2 * q * y) < y ) {
+            let result = q + q;
         }
         else {
-            return (2 * q) + 1;
+            let result = q + q + 1;
+        }
+
+        if (neg_x = neg_y) {
+            return result;
+        }
+        else {
+            return -result;
         }
     }
 
-    /** Returns the integer part of the x to the power y. */
-    function int pow(int x, int y) {
-        var int mult;
-        if (y = 0) {
-            return 1;
-        }
-        let mult = 1;
-        while (y > 0) {
-            let mult = Math.multiply(x, mult);
-            let y = y - 1;
-        }
-        return mult;
+    /** Returns the remainder part of x/y */
+    function int mod(int x, int y) {
+        var int q;
+
+        let q = Math.divide(x, y);
+        return x - (q * y);
+    }
+
+    /** Returns the 2 to the power x. */
+    function int pow2(int x) {
+        return bits[x];
     }
 
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-        var int y, n, i;
+        var int j, y;
+        var int approx;
+        var int approx_squared;
+
         let y = 0;
-        let i = 7;
-        while (~(i = 0)) {
-            let n = (y + Math.pow(2, i)) * (y + Math.pow(2, i));
-            if ((n < x) | (n = x)) {
-                let y = y + Math.pow(2, i);
+        let j = 7;      // = #bits / 2 - 1
+        while( ~(j < 0) ) {
+            let approx = y + bits[j];
+            let approx_squared = approx * approx;
+            if( ~(approx_squared > x) & (approx_squared > 0) ) {    // in case of overflow
+                let y = approx;
             }
-            let i = i - 1;
+            let j = j - 1;
         }
         return y;
+
     }
 
     /** Returns the greater number. */

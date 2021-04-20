@@ -11,7 +11,8 @@
 class Memory {
 
     // Arrays to map whole ram, heap and free memory segments
-    static Array ram, heap, freeList;
+    static Array ram, heap;
+    static int freeList;
 
     /** Initializes the class. */
     function void init() {
@@ -23,7 +24,7 @@ class Memory {
         // At first entire heap is free
         let freeList = 2048;
         // First two addresses contain a pointer and length of the freeList
-        let heap[0] = null;
+        let heap[0] = 0;
         let heap[1] = 14335;
         return;
     }
@@ -42,41 +43,43 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-        var Array block, newBlock;
-        var int next, blockSize;
-
+        // First fit algorithm
+        var Array block;
+        var int block_next, block_size;
+        var Array newBlock;
+        
         let block = freeList;
-        let next = freeList[0];
-        let blockSize = freeList[1];
-        if ((blockSize = (size + 2)) | (blockSize > (size + 2))) {
+        let block_size = freeList[1];
+        let block_next = freeList[0];
+        if (block_size > (size + 2)) {
             let freeList = freeList + size + 2;
             let freeList[0] = 0;
-            let freeList[1] = blockSize - size - 2;
+            let freeList[1] = block_size - size - 2;
             let block[0] = 0;
             let block[1] = size;
             return block + 2;
         }
-        while (~(next = null)) {
-            let block = next;
-            let next = block[0];
-            let blockSize = block[1];
-            if ((blockSize = (size + 2)) | (blockSize > (size + 2))) {
-                let blockSize = blockSize - size - 2;
-                let block[1] = blockSize;
-                let newBlock = block + blockSize;
+        while (~(block_next = 0)) {
+            let block = block_next;
+            let block_size = block[1];
+            let block_next = block[0];
+            if (block_size > (size + 2)) {
+                let block_size = block_size - size - 2;
+                let block[1] = block_size;
+                let newBlock = block + block_size;
                 let newBlock[0] = 0;
                 let newBlock[1] = size;
                 return newBlock + 2;
             }
         }
         return -1;
+
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-        var Array address
-        var int next;
+        var Array address, next;
 
         // Set the first freeList to address
         let address = freeList;
