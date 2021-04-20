@@ -35,22 +35,17 @@ class Math {
 
     /** Returns the binary ith bit of decimal value x. */
     function boolean bit(int x, int i) {
-        if ((x & bits[i]) = 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        return ~(x & Math.pow2(i));
+    }
+
+    /** Returns the 2 to the power x. */
+    function int pow2(int x) {
+        return bits[x];
     }
 
     /** Returns the absolute value of x. */
     function int abs(int x) {
-        if (x < 0){
-            return -x;
-        }
-        else {
-            return x;
-        }
+        return Math.max(x, -x);
     }
 
     /** Returns the product of x and y.
@@ -117,27 +112,21 @@ class Math {
         return x - (q * y);
     }
 
-    /** Returns the 2 to the power x. */
-    function int pow2(int x) {
-        return bits[x];
-    }
-
-
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-        var int j, y;
+        var int i, y;
         var int approx;
         var int approx_squared;
 
         let y = 0;
-        let j = 7;      // = #bits / 2 - 1
-        while( ~(j < 0) ) {
-            let approx = y + bits[j];
+        let i = 7;
+        while (~(i < 0)) {
+            let approx = y + Math.pow2(i);
             let approx_squared = approx * approx;
-            if( ~(approx_squared > x) & (approx_squared > 0) ) {    // in case of overflow
+            if (~(approx_squared > x) & (approx_squared > 0)) {    // in case of overflow
                 let y = approx;
             }
-            let j = j - 1;
+            let i = i - 1;
         }
         return y;
 
